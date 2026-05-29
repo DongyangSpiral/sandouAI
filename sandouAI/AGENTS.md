@@ -93,20 +93,20 @@ src/
 | 代码生成 | ✅ Controller | ✅ 页面 |  |
 | 统一认证(UAS 用户/企业/应用) | ✅ Controller + Service | ✅ 页面 | 完整 CRUD |
 | 登录(密码/短信/企业) | ✅ Controller + Service | ✅ 页面 | 4 种方式 |
-| 文件管理(上传/下载/目录) | ✅ Controller + Service | ❌ | 只有后端 |
-| 分享管理 | ❌ | ❌ | 未开始 |
-| 团队管理 | ❌ | ❌ | 未开始 |
+| 文件管理(上传/下载/目录) | ✅ Controller + Service | ❌ | 后端已完成 |
+| 分享管理 | ✅ Controller + Service | ❌ | 后端已完成 |
+| 团队管理 | ❌ | ❌ | 暂不实现 |
+| Sa-Token 权限拦截 | ✅ | — | 已更新拦截路径 |
 
 ### 未完成（待开发）
 
 优先级从上到下：
 
-1. **前端文件管理页面** — `src/views/dfs/`（文件列表、目录树、上传、搜索）
-2. **前端团队管理页面** — `src/views/team/`、路由配置
-3. **分享 Service + Controller** —— 后端 `/api/share/*`
-4. **团队 Service + Controller** —— 后端 `/api/team/*`
-5. **Sa-Token 权限** —— 更新 `SaTokenConfig.java` 拦截新路径
-6. **侧边栏菜单** —— 更新 `layout/index.vue` 和 `router/index.js`
+1. **前端文件管理页面** — `src/views/dfs/`（文件列表、目录树、上传）
+2. **前端文件分享页面** — `src/views/dfs/share.vue`
+3. **前端 API 文件** — `src/api/dfs.js`（封装文件/目录/分享接口）
+4. **路由配置** — `src/router/index.js` 添加 dfs 路由
+5. **侧边栏菜单** — 更新 `layout/index.vue`
 
 ## 常见任务模板
 

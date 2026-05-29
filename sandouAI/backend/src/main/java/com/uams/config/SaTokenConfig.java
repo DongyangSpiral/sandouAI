@@ -12,7 +12,10 @@ public class SaTokenConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new SaInterceptor(handle -> StpUtil.checkLogin()))
-                .addPathPatterns("/api/system/**", "/api/uas/**", "/api/dashboard/**", "/api/monitor/**", "/api/tool/**")
-                .excludePathPatterns("/api/system/login", "/api/uas/auth/**");
+                .addPathPatterns("/api/system/**", "/api/uas/**", "/api/dashboard/**",
+                        "/api/monitor/**", "/api/tool/**",
+                        "/api/file/**", "/api/folder/**", "/api/share/**")
+                .excludePathPatterns("/api/system/login", "/api/uas/auth/**",
+                        "/api/share/access/**");
     }
 }
