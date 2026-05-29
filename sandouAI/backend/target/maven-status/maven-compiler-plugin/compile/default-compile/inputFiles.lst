@@ -2,10 +2,13 @@ D:\schoolTools\sandouAI\backend\src\main\java\com\uams\config\SecurityConfig.jav
 D:\schoolTools\sandouAI\backend\src\main\java\com\uams\service\UasAuthService.java
 D:\schoolTools\sandouAI\backend\src\main\java\com\uams\config\RabbitMqConfig.java
 D:\schoolTools\sandouAI\backend\src\main\java\com\uams\controller\ServerMonitorController.java
+D:\schoolTools\sandouAI\backend\src\main\java\com\uams\controller\FolderController.java
+D:\schoolTools\sandouAI\backend\src\main\java\com\uams\controller\FileController.java
 D:\schoolTools\sandouAI\backend\src\main\java\com\uams\entity\ULoginLog.java
 D:\schoolTools\sandouAI\backend\src\main\java\com\uams\mapper\TeamTeamMapper.java
 D:\schoolTools\sandouAI\backend\src\main\java\com\uams\service\ULoginLogService.java
 D:\schoolTools\sandouAI\backend\src\main\java\com\uams\config\DfsConfig.java
+D:\schoolTools\sandouAI\backend\src\main\java\com\uams\service\FolderService.java
 D:\schoolTools\sandouAI\backend\src\main\java\com\uams\service\UAppService.java
 D:\schoolTools\sandouAI\backend\src\main\java\com\uams\controller\UasAuthController.java
 D:\schoolTools\sandouAI\backend\src\main\java\com\uams\entity\TeamTeam.java
@@ -68,5 +71,6 @@ D:\schoolTools\sandouAI\backend\src\main\java\com\uams\entity\DfsFileTag.java
 D:\schoolTools\sandouAI\backend\src\main\java\com\uams\entity\DfsTag.java
 D:\schoolTools\sandouAI\backend\src\main\java\com\uams\entity\SysRole.java
 D:\schoolTools\sandouAI\backend\src\main\java\com\uams\mapper\SysRoleMapper.java
+D:\schoolTools\sandouAI\backend\src\main\java\com\uams\service\FileService.java
 D:\schoolTools\sandouAI\backend\src\main\java\com\uams\entity\DfsFileFolder.java
 D:\schoolTools\sandouAI\backend\src\main\java\com\uams\service\MinioStorageService.java

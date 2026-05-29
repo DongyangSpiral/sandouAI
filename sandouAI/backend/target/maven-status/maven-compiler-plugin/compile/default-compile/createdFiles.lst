@@ -1,4 +1,5 @@
 com\uams\mapper\UAppMapper.class
+com\uams\controller\FileController.class
 com\uams\entity\SysRole.class
 com\uams\config\CorsConfig.class
 com\uams\mapper\DfsShareMapper.class
@@ -7,6 +8,7 @@ com\uams\common\Result.class
 com\uams\mapper\DfsFolderMapper.class
 com\uams\config\RabbitMqConfig.class
 com\uams\mapper\TeamFileMapper.class
+com\uams\service\FileService.class
 com\uams\mapper\DfsFileFolderMapper.class
 com\uams\entity\DfsFileVersion.class
 com\uams\entity\SysUser.class
@@ -23,6 +25,7 @@ com\uams\mapper\DfsFileMapper.class
 com\uams\entity\DfsTag.class
 com\uams\entity\TeamFile.class
 com\uams\service\SysUserService.class
+com\uams\controller\FolderController.class
 com\uams\service\SysMenuService.class
 com\uams\config\SaTokenConfig.class
 com\uams\entity\TeamTeam.class
@@ -43,6 +46,7 @@ com\uams\mapper\TeamMemberMapper.class
 com\uams\entity\DfsFile.class
 com\uams\service\UCorpUserService.class
 com\uams\controller\SysController.class
+com\uams\service\FolderService.class
 com\uams\entity\DfsFileFolder.class
 com\uams\mapper\TeamTeamMapper.class
 com\uams\mapper\SysRoleMapper.class
