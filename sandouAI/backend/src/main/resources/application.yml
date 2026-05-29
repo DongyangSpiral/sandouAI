@@ -18,6 +18,13 @@ mybatis-plus:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
+dfs:
+  storage:
+    type: local
+    local:
+      path: D:\schoolTools\uploads
+      max-size: 524288000
+
 sa-token:
   token-name: Authorization
   timeout: 2592000
