@@ -3,6 +3,7 @@ package com.uams.entity;
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @TableName("dfs_folder")
@@ -31,4 +32,7 @@ public class DfsFolder {
 
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
+
+    @TableField(exist = false)
+    private List<DfsFolder> children;
 }
