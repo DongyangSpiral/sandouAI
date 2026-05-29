@@ -1,0 +1,83 @@
+2026-05-29T10:53:51.291398Z 0 [System] [MY-013169] [Server] D:\DataBase\MySQL\MySQL Server 8.0\bin\mysqld.exe (mysqld 8.0.44) initializing of server in progress as process 25596
+2026-05-29T10:53:51.322099Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+2026-05-29T10:53:51.877054Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+2026-05-29T10:53:53.819384Z 6 [Warning] [MY-010453] [Server] root@localhost is created with an empty password ! Please consider switching off the --initialize-insecure option.
+2026-05-29T10:54:00.216933Z 0 [System] [MY-010116] [Server] D:\DataBase\MySQL\MySQL Server 8.0\bin\mysqld.exe (mysqld 8.0.44) starting as process 2444
+2026-05-29T10:54:00.234782Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+2026-05-29T10:54:00.490163Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+2026-05-29T10:54:00.600823Z 0 [Warning] [MY-011311] [Server] Plugin mysqlx reported: 'All I/O interfaces are disabled, X Protocol won't be accessible'
+2026-05-29T10:54:00.766240Z 0 [Warning] [MY-010068] [Server] CA certificate ca.pem is self signed.
+2026-05-29T10:54:00.766937Z 0 [System] [MY-013602] [Server] Channel mysql_main configured to support TLS. Encrypted connections are now supported for this channel.
+2026-05-29T10:54:00.787516Z 0 [System] [MY-010931] [Server] D:\DataBase\MySQL\MySQL Server 8.0\bin\mysqld.exe: ready for connections. Version: '8.0.44'  socket: ''  port: 0  MySQL Community Server - GPL.
+2026-05-29T10:54:00.788722Z 0 [ERROR] [MY-010131] [Server] TCP/IP, --shared-memory, or --named-pipe should be configured on NT OS
+2026-05-29T10:54:00.789471Z 0 [ERROR] [MY-010119] [Server] Aborting
+2026-05-29T10:54:02.019537Z 0 [ERROR] [MY-013183] [InnoDB] Assertion failure: trx0sys.cc:644:UT_LIST_GET_LEN(trx_sys->mysql_trx_list) == 0 thread 25736
+InnoDB: We intentionally generate a memory trap.
+InnoDB: Submit a detailed bug report to http://bugs.mysql.com.
+InnoDB: If you get repeated assertion failures or crashes, even
+InnoDB: immediately after the mysqld startup, there may be
+InnoDB: corruption in the InnoDB tablespace. Please refer to
+InnoDB: http://dev.mysql.com/doc/refman/8.0/en/forcing-innodb-recovery.html
+InnoDB: about forcing recovery.
+2026-05-29T10:54:02Z UTC - mysqld got exception 0x16 ;
+Most likely, you have hit a bug, but this error can also be caused by malfunctioning hardware.
+Thread pointer: 0x0
+Attempting backtrace. You can use the following information to find out
+where mysqld died. If you see no messages after this, something went
+terribly wrong...
+7ff6f99b46f8    mysqld.exe!?my_print_stacktrace@@YAXPEBEK@Z()
+7ff6f8b24431    mysqld.exe!?print_fatal_signal@@YAXH@Z()
+7ff6f8b24173    mysqld.exe!?my_server_abort@@YAXXZ()
+7ff6f9998c9a    mysqld.exe!?my_abort@@YAXXZ()
+7ff6f9b6f479    mysqld.exe!?do_reset@Zstd_dec@compression@transaction@binary_log@@EEAAXXZ()
+7ff6f9a5a90e    mysqld.exe!?do_reset@Zstd_dec@compression@transaction@binary_log@@EEAAXXZ()
+7ff6f9afb20f    mysqld.exe!?do_reset@Zstd_dec@compression@transaction@binary_log@@EEAAXXZ()
+7ff6f9a07f6b    mysqld.exe!?do_reset@Zstd_dec@compression@transaction@binary_log@@EEAAXXZ()
+7ff6f89157db    mysqld.exe!?ha_finalize_handlerton@@YAHPEAUst_plugin_int@@@Z()
+7ff6f8930f64    mysqld.exe!?memcached_shutdown@@YAXXZ()
+7ff6f8936a78    mysqld.exe!?plugin_unlock_list@@YAXPEAVTHD@@PEAPEAUst_plugin_int@@_K@Z()
+7ff6f89356c0    mysqld.exe!?plugin_shutdown@@YAXXZ()
+7ff6f88beea7    mysqld.exe!?claim_memory_ownership@Log_event@@UEAAX_N@Z()
+7ff6f88d250d    mysqld.exe!?type@LogEvent@@QEAAAEAV1@W4enum_log_type@@@Z()
+7ff6f88d0eac    mysqld.exe!?setup_conn_event_handler_threads@@YAXXZ()
+7ff6f88d4b4e    mysqld.exe!?win_main@@YAHHPEAPEAD@Z()
+7ff6f88cd055    mysqld.exe!?mysql_service@@YAHPEAX@Z()
+7ff6f88cd65b    mysqld.exe!?mysqld_main@@YAHHPEAPEAD@Z()
+7ff6fa1eb214    mysqld.exe!?vio_write_shared_memory@@YA_KPEAUVio@@PEBE_K@Z()
+7ffdd0c4e957    KERNEL32.DLL!BaseThreadInitThunk()
+7ffdd236427c    ntdll.dll!RtlUserThreadStart()
+The manual page at http://dev.mysql.com/doc/mysql/en/crashing.html contains
+information that should help you find out what is causing the crash.
+2026-05-29T10:54:22.121164Z 0 [System] [MY-010116] [Server] D:\DataBase\MySQL\MySQL Server 8.0\bin\mysqld.exe (mysqld 8.0.44) starting as process 16364
+2026-05-29T10:54:22.142111Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+2026-05-29T10:54:22.372184Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+2026-05-29T10:54:22.473419Z 0 [Warning] [MY-011311] [Server] Plugin mysqlx reported: 'All I/O interfaces are disabled, X Protocol won't be accessible'
+2026-05-29T10:54:22.641530Z 0 [Warning] [MY-010068] [Server] CA certificate ca.pem is self signed.
+2026-05-29T10:54:22.642183Z 0 [System] [MY-013602] [Server] Channel mysql_main configured to support TLS. Encrypted connections are now supported for this channel.
+2026-05-29T10:54:22.664797Z 0 [System] [MY-010931] [Server] D:\DataBase\MySQL\MySQL Server 8.0\bin\mysqld.exe: ready for connections. Version: '8.0.44'  socket: ''  port: 0  MySQL Community Server - GPL.
+2026-05-29T10:54:32.728703Z 0 [System] [MY-010116] [Server] D:\DataBase\MySQL\MySQL Server 8.0\bin\mysqld.exe (mysqld 8.0.44) starting as process 2476
+2026-05-29T10:54:32.746889Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+2026-05-29T10:54:32.748394Z 1 [ERROR] [MY-012271] [InnoDB] The innodb_system data file 'ibdata1' must be writable
+2026-05-29T10:54:32.749099Z 1 [ERROR] [MY-012278] [InnoDB] The innodb_system data file 'ibdata1' must be writable
+2026-05-29T10:54:32.749764Z 1 [ERROR] [MY-010334] [Server] Failed to initialize DD Storage Engine
+2026-05-29T10:54:32.750667Z 0 [ERROR] [MY-010020] [Server] Data Dictionary initialization failed.
+2026-05-29T10:54:32.751271Z 0 [ERROR] [MY-010119] [Server] Aborting
+2026-05-29T10:54:32.752121Z 0 [System] [MY-010910] [Server] D:\DataBase\MySQL\MySQL Server 8.0\bin\mysqld.exe: Shutdown complete (mysqld 8.0.44)  MySQL Community Server - GPL.
+2026-05-29T10:54:56.869870Z 0 [System] [MY-010116] [Server] D:\DataBase\MySQL\MySQL Server 8.0\bin\mysqld.exe (mysqld 8.0.44) starting as process 8280
+2026-05-29T10:54:56.886220Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+2026-05-29T10:54:57.270262Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+2026-05-29T10:54:57.416224Z 0 [System] [MY-010229] [Server] Starting XA crash recovery...
+2026-05-29T10:54:57.422255Z 0 [System] [MY-010232] [Server] XA crash recovery finished.
+2026-05-29T10:54:57.491089Z 0 [Warning] [MY-010068] [Server] CA certificate ca.pem is self signed.
+2026-05-29T10:54:57.491997Z 0 [System] [MY-013602] [Server] Channel mysql_main configured to support TLS. Encrypted connections are now supported for this channel.
+2026-05-29T10:54:57.529151Z 0 [System] [MY-011323] [Server] X Plugin ready for connections. Bind-address: '::' port: 33060
+2026-05-29T10:54:57.529321Z 0 [System] [MY-010931] [Server] D:\DataBase\MySQL\MySQL Server 8.0\bin\mysqld.exe: ready for connections. Version: '8.0.44'  socket: ''  port: 3307  MySQL Community Server - GPL.
+2026-05-29T11:10:32.157807Z 0 [System] [MY-010116] [Server] D:\DataBase\MySQL\MySQL Server 8.0\bin\mysqld.exe (mysqld 8.0.44) starting as process 27280
+2026-05-29T11:10:32.171830Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+2026-05-29T11:10:32.614952Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+2026-05-29T11:10:32.765651Z 0 [System] [MY-010229] [Server] Starting XA crash recovery...
+2026-05-29T11:10:32.774221Z 0 [System] [MY-010232] [Server] XA crash recovery finished.
+2026-05-29T11:10:32.903393Z 0 [Warning] [MY-010068] [Server] CA certificate ca.pem is self signed.
+2026-05-29T11:10:32.904309Z 0 [System] [MY-013602] [Server] Channel mysql_main configured to support TLS. Encrypted connections are now supported for this channel.
+2026-05-29T11:10:32.940770Z 0 [System] [MY-011323] [Server] X Plugin ready for connections. Bind-address: '::' port: 33060
+2026-05-29T11:10:32.940824Z 0 [System] [MY-010931] [Server] D:\DataBase\MySQL\MySQL Server 8.0\bin\mysqld.exe: ready for connections. Version: '8.0.44'  socket: ''  port: 3307  MySQL Community Server - GPL.
