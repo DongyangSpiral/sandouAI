@@ -1,5 +1,5 @@
 @echo off
-set JAVA_HOME=D:\codeTools\Java\JDK17
+set JAVA_HOME=E:\JDK17.0.13
 set PATH=%JAVA_HOME%\bin;%PATH%
-cd /d D:\schoolTools\sandouAI\backend
+cd /d E:\Code\sandouAI\sandouAI\backend
 mvn spring-boot:run

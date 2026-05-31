@@ -19,7 +19,7 @@ public class FolderController {
 
     @PostMapping
     public Result<?> create(@RequestBody Map<String, String> body) {
-        long userId = StpUtil.getLoginIdAsLong();
+        long userId = com.uams.common.AuthUtil.getUserId();
         Long parentId = body.get("parentId") != null ? Long.valueOf(body.get("parentId")) : null;
         return Result.ok(folderService.create(body.get("name"), parentId, userId));
     }
@@ -39,7 +39,7 @@ public class FolderController {
 
     @GetMapping("/tree")
     public Result<?> tree() {
-        long userId = StpUtil.getLoginIdAsLong();
+        long userId = com.uams.common.AuthUtil.getUserId();
         return Result.ok(folderService.tree(userId));
     }
 
@@ -53,7 +53,7 @@ public class FolderController {
     public Result<?> content(@RequestParam(value = "folderId", required = false) Long folderId,
                              @RequestParam(defaultValue = "1") Integer pageNum,
                              @RequestParam(defaultValue = "10") Integer pageSize) {
-        long userId = StpUtil.getLoginIdAsLong();
+        long userId = com.uams.common.AuthUtil.getUserId();
         Page<DfsFile> page = new Page<>(pageNum, pageSize);
         return Result.ok(folderService.listContent(folderId, userId, page));
     }

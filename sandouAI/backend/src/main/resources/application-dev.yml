@@ -20,3 +20,17 @@ spring:
     port: 5672
     username: guest
     password: guest
+
+dfs:
+  storage:
+    type: minio
+    minio:
+      endpoint: http://127.0.0.1:9000
+      access-key: minioadmin
+      secret-key: minioadmin
+      bucket: uams-files
+
+ai:
+  deepseek:
+    api-key: sk-fb0e397a19144f81ba80dcf3f0828379
+    endpoint: https://api.deepseek.com/chat/completions

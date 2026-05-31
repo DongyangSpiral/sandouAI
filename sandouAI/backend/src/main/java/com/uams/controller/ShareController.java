@@ -20,7 +20,7 @@ public class ShareController {
 
     @PostMapping
     public Result<?> create(@RequestBody Map<String, Object> body) {
-        long userId = StpUtil.getLoginIdAsLong();
+        long userId = com.uams.common.AuthUtil.getUserId();
         Long fileId = body.get("fileId") != null ? Long.valueOf(body.get("fileId").toString()) : null;
         Long folderId = body.get("folderId") != null ? Long.valueOf(body.get("folderId").toString()) : null;
         String password = (String) body.get("password");
@@ -43,14 +43,14 @@ public class ShareController {
     @GetMapping("/list")
     public Result<?> list(@RequestParam(defaultValue = "1") Integer pageNum,
                           @RequestParam(defaultValue = "10") Integer pageSize) {
-        long userId = StpUtil.getLoginIdAsLong();
+        long userId = com.uams.common.AuthUtil.getUserId();
         Page<DfsShare> page = new Page<>(pageNum, pageSize);
         return Result.ok(shareService.listByUser(userId, page));
     }
 
     @DeleteMapping("/{id}")
     public Result<?> cancel(@PathVariable Long id) {
-        long userId = StpUtil.getLoginIdAsLong();
+        long userId = com.uams.common.AuthUtil.getUserId();
         shareService.cancel(id, userId);
         return Result.ok();
     }

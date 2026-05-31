@@ -19,14 +19,14 @@ public class FileController {
     @PostMapping("/upload")
     public Result<?> upload(@RequestParam("file") MultipartFile file,
                             @RequestParam(value = "folderId", required = false) Long folderId) {
-        long userId = StpUtil.getLoginIdAsLong();
+        long userId = com.uams.common.AuthUtil.getUserId();
         return Result.ok(fileService.upload(file, folderId, userId));
     }
 
     @PostMapping("/batchUpload")
     public Result<?> batchUpload(@RequestParam("files") MultipartFile[] files,
                                  @RequestParam(value = "folderId", required = false) Long folderId) {
-        long userId = StpUtil.getLoginIdAsLong();
+        long userId = com.uams.common.AuthUtil.getUserId();
         return Result.ok(fileService.batchUpload(java.util.Arrays.asList(files), folderId, userId));
     }
 
@@ -55,7 +55,7 @@ public class FileController {
 
     @PostMapping("/copy")
     public Result<?> copy(@RequestBody java.util.Map<String, Long> params) {
-        long userId = StpUtil.getLoginIdAsLong();
+        long userId = com.uams.common.AuthUtil.getUserId();
         return Result.ok(fileService.copy(params.get("id"), params.get("targetFolderId"), userId));
     }
 

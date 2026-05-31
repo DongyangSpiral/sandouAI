@@ -2,10 +2,11 @@
 chcp 65001 >nul
 title UAMS 启动器
 
-set JAVA_HOME=D:\codeTools\Java\JDK17
-set PATH=%JAVA_HOME%\bin;%PATH%
-set MYSQL_HOME=D:\DataBase\MySQL\MySQL Server 8.0
-set MYSQL_DATA=D:\schoolTools\sandouAI\mysql-data
+set JAVA_HOME=E:\JDK17.0.13
+set NODE_HOME=E:\node-v20.12.2-win-x64
+set PATH=%NODE_HOME%;%JAVA_HOME%\bin;%PATH%
+set MYSQL_HOME=E:\MySQL\MySQL Server 8.0
+set MYSQL_DATA=E:\Code\sandouAI\sandouAI\mysql-data
 set MYSQL_PORT=3307
 
 echo [1/3] 检查环境...

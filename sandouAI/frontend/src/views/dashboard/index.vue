@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="dashboard">
     <el-row :gutter="20">
       <el-col :xs="12" :sm="6" v-for="card in statCards" :key="card.title">
@@ -11,6 +11,29 @@
               <div class="stat-title">{{ card.title }}</div>
               <div class="stat-value">{{ card.value }}</div>
             </div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <!-- 快捷入口区域 -->
+    <el-row :gutter="20" style="margin-top: 20px;">
+      <el-col :span="24">
+        <el-card shadow="hover">
+          <template #header>
+            <div class="card-header">
+              <span>快捷入口</span>
+            </div>
+          </template>
+          <div style="display: flex; gap: 20px;">
+            <el-button type="primary" size="large" @click="$router.push('/dfs')">
+              <el-icon style="margin-right: 8px;"><FolderOpened /></el-icon>
+              进入个人文件管理
+            </el-button>
+            <el-button type="success" size="large" @click="$router.push('/team')">
+              <el-icon style="margin-right: 8px;"><Share /></el-icon>
+              进入团队协作空间
+            </el-button>
           </div>
         </el-card>
       </el-col>
@@ -44,7 +67,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import * as echarts from 'echarts'
-import { User, UserFilled, OfficeBuilding, Grid, Document, Key } from '@element-plus/icons-vue'
+import { User, UserFilled, OfficeBuilding, Grid, Document, Key, FolderOpened, Share } from '@element-plus/icons-vue'
 import { getDashboardStats, getDashboardChart } from '../../api/dashboard'
 
 const lineChartRef = ref(null)

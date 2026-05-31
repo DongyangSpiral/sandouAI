@@ -33,6 +33,21 @@ const routes = [
       { path: 'uas/app', name: 'UasApp', component: () => import('../views/uas/app/index.vue') },
       { path: 'uas/log', name: 'UasLog', component: () => import('../views/uas/log/index.vue') }
     ]
+  },
+  {
+    path: '/dfs',
+    name: 'DfsHome',
+    component: () => import('../views/dfs/index.vue')
+  },
+  {
+    path: '/team',
+    name: 'TeamHome',
+    component: () => import('../views/team/index.vue')
+  },
+  {
+    path: '/team/detail/:id',
+    name: 'TeamDetail',
+    component: () => import('../views/team/detail.vue')
   }
 ]
 
