@@ -7,10 +7,11 @@
         <h2>{{ teamInfo.name }} <span class="tag">团队空间</span></h2>
       </div>
       <div class="nav-right">
+        <el-button v-if="isAdmin" type="danger" plain @click="handleDeleteTeam">解散团队</el-button>
         <el-button type="primary" plain @click="inviteDialogVisible = true">邀请成员</el-button>
         <el-upload
           class="upload-btn"
-          action="/api/team/file"
+          action="/api/team/file/upload"
           :data="{ teamId: route.params.id }"
           :headers="uploadHeaders"
           :show-file-list="false"
@@ -40,7 +41,9 @@
           </el-table-column>
           <el-table-column label="操作" width="150" fixed="right">
             <template #default="{ row }">
-              <el-button link type="primary" @click="handleDownload(row)">下载</el-button>
+              <el-button link type="primary" size="small" @click="handlePreview(row)">预览</el-button>
+              <el-button link type="primary" size="small" @click="handleDownloadFile(row)">下载</el-button>
+              <el-button v-if="isAdmin" link type="danger" size="small" @click="handleDeleteFile(row)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -55,7 +58,10 @@
               <el-avatar :size="32">{{ member.userName ? member.userName.charAt(0) : 'U' }}</el-avatar>
               <span>{{ member.userName || ('用户' + member.userId) }}</span>
             </div>
-            <el-tag size="small" :type="getRoleType(member.role)">{{ getRoleName(member.role) }}</el-tag>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <el-tag size="small" :type="getRoleType(member.role)">{{ getRoleName(member.role) }}</el-tag>
+              <el-button v-if="isAdmin && member.userId !== currentUserId" link type="danger" size="small" @click="handleRemoveMember(member)">移除</el-button>
+            </div>
           </div>
         </div>
       </div>
@@ -64,8 +70,8 @@
     <!-- Invite Member Dialog -->
     <el-dialog v-model="inviteDialogVisible" title="邀请新成员" width="400px" custom-class="glass-container">
       <el-form :model="inviteForm" label-width="80px">
-        <el-form-item label="用户ID">
-          <el-input v-model="inviteForm.userId" placeholder="请输入要邀请的用户ID" />
+        <el-form-item label="用户名">
+          <el-input v-model="inviteForm.username" placeholder="请输入要邀请的用户名" />
         </el-form-item>
         <el-form-item label="角色">
           <el-select v-model="inviteForm.role" style="width: 100%">
@@ -82,28 +88,35 @@
         </span>
       </template>
     </el-dialog>
+
+    <FilePreviewModal ref="previewModal" @download="handleDownloadFile" />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
-import { getTeamDetail, getTeamMembers, getTeamFiles, inviteMember } from '@/api/team'
+import { useRoute, useRouter } from 'vue-router'
+import { getTeamDetail, getTeamMembers, getTeamFiles, inviteMember, deleteTeam, removeTeamFile, removeMember } from '@/api/team'
 import { downloadFile } from '@/api/dfs'
 import { Document } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import FilePreviewModal from '../components/FilePreviewModal.vue'
 
 const route = useRoute()
+const router = useRouter()
 const teamId = route.params.id
 
+const previewModal = ref(null)
 const teamInfo = ref({})
 const memberList = ref([])
 const fileList = ref([])
 const inviteDialogVisible = ref(false)
+const isAdmin = ref(false)
+const currentUserId = ref(null)
 
 const inviteForm = ref({
   teamId: teamId,
-  userId: '',
+  username: '',
   role: 'member'
 })
 
@@ -114,13 +127,15 @@ const uploadHeaders = {
 const fetchData = async () => {
   try {
     const infoRes = await getTeamDetail(teamId)
-    if (infoRes.data) teamInfo.value = infoRes.data
+    if (infoRes.data && infoRes.data.data) teamInfo.value = infoRes.data.data
 
     const membersRes = await getTeamMembers({ teamId, pageNum: 1, pageSize: 100 })
-    memberList.value = membersRes.data.list || membersRes.data.records || []
+    const membersPayload = membersRes.data.data || []
+    memberList.value = Array.isArray(membersPayload) ? membersPayload : (membersPayload.list || membersPayload.records || [])
 
     const filesRes = await getTeamFiles({ teamId, pageNum: 1, pageSize: 50 })
-    fileList.value = filesRes.data.list || filesRes.data.records || []
+    const filesPayload = filesRes.data.data || []
+    fileList.value = Array.isArray(filesPayload) ? filesPayload : (filesPayload.list || filesPayload.records || [])
   } catch (error) {
     ElMessage.error('获取团队详情数据失败')
   }
@@ -135,9 +150,13 @@ const handleUploadSuccess = (response) => {
   }
 }
 
-const handleDownload = async (row) => {
+const handlePreview = (row) => {
+  previewModal.value.open(row)
+}
+
+const handleDownloadFile = async (row) => {
   try {
-    const res = await downloadFile(row.id) // Fallback to dfs download, assuming team file id matches
+    const res = await downloadFile(row.id)
     const url = window.URL.createObjectURL(new Blob([res.data]))
     const link = document.createElement('a')
     link.href = url
@@ -150,20 +169,69 @@ const handleDownload = async (row) => {
   }
 }
 
+const handleDeleteFile = (row) => {
+  ElMessageBox.confirm('确定要删除这个团队文件吗？', '警告', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(async () => {
+    try {
+      await removeTeamFile(teamId, row.id)
+      ElMessage.success('文件已删除')
+      fetchData()
+    } catch (e) {
+      ElMessage.error(e.response?.data?.message || '删除失败')
+    }
+  }).catch(() => {})
+}
+
+const handleRemoveMember = (member) => {
+  ElMessageBox.confirm(`确定要移除成员 ${member.userName || member.userId} 吗？`, '警告', {
+    confirmButtonText: '确定移除',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(async () => {
+    try {
+      await removeMember(member.id)
+      ElMessage.success('成员已移除')
+      fetchData()
+    } catch (e) {
+      ElMessage.error(e.response?.data?.message || '移除失败')
+    }
+  }).catch(() => {})
+}
+
 const handleInvite = async () => {
-  if (!inviteForm.value.userId) {
-    ElMessage.warning('请输入用户ID')
+  if (!inviteForm.value.username) {
+    ElMessage.warning('请输入用户名')
     return
   }
   try {
     await inviteMember(inviteForm.value)
-    ElMessage.success('邀请成功')
+    ElMessage.success('邀请已发送，等待对方同意')
     inviteDialogVisible.value = false
-    inviteForm.value.userId = ''
+    inviteForm.value.username = ''
     fetchData()
   } catch (error) {
-    ElMessage.error('邀请失败')
+    ElMessage.error(error.response?.data?.message || '邀请失败')
   }
+}
+
+import { ElMessageBox } from 'element-plus'
+const handleDeleteTeam = () => {
+  ElMessageBox.confirm('确定要解散并删除这个团队吗？所有数据将无法恢复！', '警告', {
+    confirmButtonText: '确定解散',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(async () => {
+    try {
+      await deleteTeam(teamId)
+      ElMessage.success('团队已解散')
+      router.push('/team')
+    } catch (e) {
+      ElMessage.error(e.response?.data?.message || '解散失败')
+    }
+  }).catch(() => {})
 }
 
 const getRoleName = (role) => {
@@ -185,6 +253,11 @@ const formatSize = (size) => {
 }
 
 onMounted(() => {
+  try {
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+    isAdmin.value = userInfo.id === 1
+    currentUserId.value = userInfo.id
+  } catch (e) { console.error(e) }
   fetchData()
 })
 </script>

@@ -6,9 +6,11 @@ import com.uams.common.Result;
 import com.uams.service.FileService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/file")
 @RequiredArgsConstructor
@@ -20,7 +22,16 @@ public class FileController {
     public Result<?> upload(@RequestParam("file") MultipartFile file,
                             @RequestParam(value = "folderId", required = false) Long folderId) {
         long userId = com.uams.common.AuthUtil.getUserId();
-        return Result.ok(fileService.upload(file, folderId, userId));
+        log.info("=== TEST LOG: API /api/file/upload called ===");
+        log.info("File name: {}, size: {}, userId: {}, folderId: {}", file.getOriginalFilename(), file.getSize(), userId, folderId);
+        try {
+            com.uams.entity.DfsFile result = fileService.upload(file, folderId, userId);
+            log.info("=== TEST LOG: Upload success, DB record created with ID: {} ===", result.getId());
+            return Result.ok(result);
+        } catch (Exception e) {
+            log.error("=== TEST LOG: Upload failed ===", e);
+            return Result.error("Upload failed: " + e.getMessage());
+        }
     }
 
     @PostMapping("/batchUpload")

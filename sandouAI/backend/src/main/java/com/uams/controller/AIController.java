@@ -19,4 +19,16 @@ public class AIController {
         String prompt = body.get("prompt");
         return Result.ok(aiService.chat(prompt));
     }
+
+    @GetMapping("/summarize")
+    public Result<?> summarize(@RequestParam("fileId") Long fileId) {
+        return Result.ok(aiService.summarize(fileId));
+    }
+
+    @PostMapping("/analyze")
+    public Result<?> analyze(@RequestBody Map<String, Object> body) {
+        Long fileId = Long.valueOf(body.get("fileId").toString());
+        String question = body.get("question").toString();
+        return Result.ok(aiService.analyze(fileId, question));
+    }
 }

@@ -106,7 +106,7 @@ public class SysUserService extends ServiceImpl<SysUserMapper, SysUser> {
         if (!pwMatch) {
             throw new RuntimeException("用户名或密码错误");
         }
-        StpUtil.login(user.getUsername());
+        StpUtil.login(user.getId());
         String token = StpUtil.getTokenValue();
         user.setLoginIp("127.0.0.1");
         user.setLoginTime(LocalDateTime.now());

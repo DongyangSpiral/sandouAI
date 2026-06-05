@@ -137,6 +137,10 @@ public class FileService extends ServiceImpl<DfsFileMapper, DfsFile> {
     }
 
     public Page<DfsFile> listByFolder(Long folderId, Page<DfsFile> page, String name, String extension) {
+        // 当未传入 folderId 时默认查询根目录（folderId = 0）
+        if (folderId == null) {
+            folderId = 0L;
+        }
         LambdaQueryWrapper<DfsFile> wrapper = new LambdaQueryWrapper<>();
         wrapper.inSql(DfsFile::getId, "SELECT file_id FROM dfs_file_folder WHERE folder_id=" + folderId);
         if (name != null && !name.isEmpty()) {
@@ -156,10 +160,19 @@ public class FileService extends ServiceImpl<DfsFileMapper, DfsFile> {
     }
 
     private void linkFileToFolder(Long fileId, Long folderId) {
-        DfsFileFolder relation = new DfsFileFolder();
-        relation.setFileId(fileId);
-        relation.setFolderId(folderId != null ? folderId : 0);
-        dfsFileFolderMapper.insert(relation);
+        Long finalFolderId = folderId != null ? folderId : 0L;
+        LambdaQueryWrapper<DfsFileFolder> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(DfsFileFolder::getFileId, fileId).eq(DfsFileFolder::getFolderId, finalFolderId);
+        if (dfsFileFolderMapper.selectCount(wrapper) == 0) {
+            try {
+                DfsFileFolder relation = new DfsFileFolder();
+                relation.setFileId(fileId);
+                relation.setFolderId(finalFolderId);
+                dfsFileFolderMapper.insert(relation);
+            } catch (Exception e) {
+                log.warn("Link file to folder ignored due to existing relation or error: {}", e.getMessage());
+            }
+        }
     }
 
     private String calculateMd5(MultipartFile file) {

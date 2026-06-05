@@ -62,7 +62,7 @@ const getSummary = async () => {
   summarizing.value = true
   try {
     const res = await aiSummarize({ fileId: file.value.id })
-    summary.value = res.data
+    summary.value = res.data.data || res.data
   } catch (error) {
     ElMessage.error('摘要生成失败')
   } finally {
@@ -82,7 +82,7 @@ const askQuestion = async () => {
   
   try {
     const res = await aiAnalyze({ fileId: file.value.id, question: q })
-    messages.value.push({ role: 'ai', content: res.data })
+    messages.value.push({ role: 'ai', content: res.data.data || res.data })
   } catch (error) {
     messages.value.push({ role: 'ai', content: '抱歉，分析出错。请稍后重试。' })
   } finally {
@@ -130,10 +130,13 @@ defineExpose({ open })
   flex-direction: column;
   gap: 10px;
   height: 350px;
-  border: 1px solid rgba(0,0,0,0.1);
+  border: 1px solid var(--glass-border);
   border-radius: 8px;
   padding: 15px;
-  background: rgba(255, 255, 255, 0.4);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
 }
 
 .messages {
@@ -160,10 +163,13 @@ defineExpose({ open })
 
 .message.ai {
   align-self: flex-start;
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
   color: #333;
-  border: 1px solid #eee;
+  border: 1px solid var(--glass-border);
   border-bottom-left-radius: 0;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
 
 .input-area {
@@ -173,7 +179,14 @@ defineExpose({ open })
 }
 
 :deep(.el-dialog.glass-container) {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.65);
   backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+:deep(.el-dialog__header) {
+  background: transparent;
 }
 </style>

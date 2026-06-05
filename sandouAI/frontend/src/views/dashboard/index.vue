@@ -2,7 +2,7 @@
   <div class="dashboard">
     <el-row :gutter="20">
       <el-col :xs="12" :sm="6" v-for="card in statCards" :key="card.title">
-        <el-card shadow="hover" class="stat-card" :body-style="{ padding: '20px' }">
+        <el-card shadow="hover" class="stat-card glass-card" :body-style="{ padding: '20px' }">
           <div class="stat-content">
             <div class="stat-icon" :style="{ background: card.color }">
               <el-icon :size="28"><component :is="card.icon" /></el-icon>
@@ -19,7 +19,7 @@
     <!-- 快捷入口区域 -->
     <el-row :gutter="20" style="margin-top: 20px;">
       <el-col :span="24">
-        <el-card shadow="hover">
+        <el-card shadow="hover" class="glass-card">
           <template #header>
             <div class="card-header">
               <span>快捷入口</span>
@@ -41,7 +41,7 @@
 
     <el-row :gutter="20" style="margin-top: 20px">
       <el-col :span="12">
-        <el-card shadow="hover">
+        <el-card shadow="hover" class="glass-card">
           <template #header>
             <div class="card-header">
               <span>用户注册趋势</span>
@@ -51,7 +51,7 @@
         </el-card>
       </el-col>
       <el-col :span="12">
-        <el-card shadow="hover">
+        <el-card shadow="hover" class="glass-card">
           <template #header>
             <div class="card-header">
               <span>登录统计</span>
@@ -176,6 +176,7 @@ onUnmounted(() => {
 }
 .stat-card {
   margin-bottom: 20px;
+  background: rgba(255, 255, 255, 0.4) !important;
 }
 .stat-content {
   display: flex;
@@ -210,5 +211,13 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   font-weight: 600;
+}
+:deep(.el-card) {
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+}
+:deep(.el-card__header) {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
 }
 </style>

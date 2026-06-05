@@ -39,6 +39,7 @@
         <el-table-column prop="createTime" label="上传时间" width="180" />
         <el-table-column label="操作" width="280" fixed="right">
           <template #default="{ row }">
+            <el-button link type="primary" @click="handlePreview(row)">预览</el-button>
             <el-button link type="primary" @click="handleDownload(row)">下载</el-button>
             <el-button link type="primary" @click="handleShare(row)">分享</el-button>
             <el-button link type="success" @click="openAI(row)">AI分析</el-button>
@@ -48,6 +49,7 @@
       </el-table>
     </div>
 
+    <FilePreviewModal ref="previewModal" @download="handleDownload" />
     <AIChatModal ref="aiModal" />
   </div>
 </template>
@@ -58,9 +60,11 @@ import { Document, Upload } from '@element-plus/icons-vue'
 import { getFileList, deleteFile, downloadFile } from '@/api/dfs'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import AIChatModal from '../components/AIChatModal.vue'
+import FilePreviewModal from '../components/FilePreviewModal.vue'
 
 const fileList = ref([])
 const aiModal = ref(null)
+const previewModal = ref(null)
 
 const uploadHeaders = {
   Authorization: localStorage.getItem('token')
@@ -69,7 +73,8 @@ const uploadHeaders = {
 const fetchFiles = async () => {
   try {
     const res = await getFileList({ pageNum: 1, pageSize: 50 })
-    fileList.value = res.data.list || res.data.records || []
+    const payload = res.data.data || []
+    fileList.value = Array.isArray(payload) ? payload : (payload.list || payload.records || [])
   } catch (error) {
     console.error('获取文件列表失败', error)
   }
@@ -86,6 +91,10 @@ const handleUploadSuccess = (response) => {
 
 const handleUploadError = () => {
   ElMessage.error('上传失败')
+}
+
+const handlePreview = (row) => {
+  previewModal.value.open(row)
 }
 
 const handleDownload = async (row) => {
@@ -168,7 +177,7 @@ onMounted(() => {
 }
 
 .file-icon {
-  color: #409EFF;
+  color: #4a40ffff;
   vertical-align: middle;
   font-size: 18px;
 }
