@@ -1,0 +1,140 @@
+name: UAMS CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-backend:
+    name: 后端构建与测试
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: test123
+          MYSQL_DATABASE: uams
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h localhost"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+      minio:
+        image: minio/minio:latest
+        env:
+          MINIO_ROOT_USER: minioadmin
+          MINIO_ROOT_PASSWORD: minioadmin
+        ports:
+          - 9000:9000
+        options: >-
+          --health-cmd "curl -f http://localhost:9000/minio/health/live"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        command: server /data
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 设置 JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: 初始化数据库
+        run: |
+          sudo apt-get install -y mysql-client
+          mysql -h 127.0.0.1 -u root -ptest123 uams < sandouAI/sql/init.sql
+          mysql -h 127.0.0.1 -u root -ptest123 uams < sandouAI/sql/init_dfs.sql
+
+      - name: Maven 编译
+        working-directory: sandouAI/backend
+        run: mvn clean compile -DskipTests
+
+      - name: Maven 打包
+        working-directory: sandouAI/backend
+        run: mvn package -DskipTests
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar
+          path: sandouAI/backend/target/*.jar
+
+  build-frontend:
+    name: 前端构建
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: sandouAI/frontend/package-lock.json
+
+      - name: 安装依赖
+        working-directory: sandouAI/frontend
+        run: npm ci
+
+      - name: 构建
+        working-directory: sandouAI/frontend
+        run: npm run build
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: sandouAI/frontend/dist/
+
+  api-tests:
+    name: API 自动化测试
+    needs: build-backend
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: test123
+          MYSQL_DATABASE: uams
+        ports:
+          - 3306:3306
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: 初始化数据库
+        run: |
+          sudo apt-get install -y mysql-client
+          mysql -h 127.0.0.1 -u root -ptest123 uams < sandouAI/sql/init.sql
+          mysql -h 127.0.0.1 -u root -ptest123 uams < sandouAI/sql/init_dfs.sql
+
+      - name: 启动后端
+        working-directory: sandouAI/backend
+        run: |
+          mvn spring-boot:run &
+          sleep 30
+          curl --retry 10 --retry-delay 5 http://localhost:8080/api/system/login -d "{\"username\":\"admin\",\"password\":\"123456\"}" -H "Content-Type: application/json" || exit 1
+
+      - name: 安装 Newman
+        run: npm install -g newman
+
+      - name: 执行 API 测试
+        run: |
+          cd sandouAI/test
+          pwsh run-api-tests.ps1 -BaseUrl "http://localhost:8080"

@@ -1,0 +1,24 @@
+fix: 修复 BUG-001/002/003，补充系统扩展表，统一401 JSON返回
+
+BUG-001: 系统扩展7张表缺失 - 新建 sql/init_extend.sql
+BUG-002: 文档密码 admin123 - 统一修正为 123456
+BUG-003: Sa-Token未登录返回500 - 统一返回HTTP 401 + JSON
+
+新增:
+- sql/init_extend.sql (7张系统扩展表+示例数据)
+- test/ (API自动化/性能测试/权限矩阵/功能报告/用户文档)
+- .github/workflows/ci.yml (CI/CD流水线)
+- CHANGELOG.md (完整变更日志)
+
+配置修正:
+- application-dev.yml: MySQL 3307-3306, 密码修正, local-minio
+- application.yml: 存储路径修正
+- DfsConfig.java: ConfigurationProperties dfs-dfs.storage
+- .m2/settings.xml: Maven仓库路径修正
+
+代码修复:
+- SaTokenConfig.java: HandlerInterceptor + ExceptionHandler 统一401
+- GlobalExceptionHandler.java: 显式设置HTTP状态码
+
+文档修正:
+- 需求.md/xuqiu.md/HANDOVER_DOC.md/AGENTS.md: 密码/表结构/启动步骤修正

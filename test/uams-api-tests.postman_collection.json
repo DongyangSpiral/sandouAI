@@ -1,0 +1,199 @@
+{
+  "info": {
+    "name": "UAMS API 自动化测试",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "token", "value": "" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "01-登录认证",
+      "item": [
+        {
+          "name": "管理员登录 - 正常",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('登录成功', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "if (json.code === 200) { pm.collectionVariables.set('token', json.data.token); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/system/login",
+            "body": { "mode": "raw", "raw": "{\"username\":\"admin\",\"password\":\"123456\"}", "options": { "raw": { "language": "json" } } }
+          }
+        },
+        {
+          "name": "管理员登录 - 错误密码",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('登录失败', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/system/login",
+            "body": { "mode": "raw", "raw": "{\"username\":\"admin\",\"password\":\"wrong\"}", "options": { "raw": { "language": "json" } } }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02-系统管理",
+      "item": [
+        {
+          "name": "用户列表",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('返回用户列表', () => { const j = pm.response.json(); pm.expect(j.code).to.eql(200); pm.expect(j.data.records).to.be.an('array'); });"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/system/user/list?pageNum=1&pageSize=10" }
+        },
+        {
+          "name": "角色列表",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('返回角色列表', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/system/role/list" }
+        },
+        {
+          "name": "菜单树",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('返回菜单树', () => { const j = pm.response.json(); pm.expect(j.code).to.eql(200); });"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/system/menu/tree" }
+        },
+        {
+          "name": "新增用户",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('新增用户', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/system/user",
+            "body": { "mode": "raw", "raw": "{\"username\":\"testuser\",\"password\":\"123456\",\"nickname\":\"测试用户\",\"status\":1}", "options": { "raw": { "language": "json" } } }
+          }
+        },
+        {
+          "name": "系统扩展-部门列表",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('部门列表', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/system/dept/list" }
+        },
+        {
+          "name": "系统扩展-字典类型列表",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('字典类型', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/system/dict/type/list" }
+        }
+      ]
+    },
+    {
+      "name": "03-统一认证(UAS)",
+      "item": [
+        {
+          "name": "自然人用户列表",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('UAS用户列表', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/uas/user/list" }
+        },
+        {
+          "name": "企业用户列表",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('企业列表', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/uas/corp/list" }
+        },
+        {
+          "name": "应用列表",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('应用列表', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/uas/app/list" }
+        },
+        {
+          "name": "登录日志",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('登录日志', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/uas/log/list" }
+        }
+      ]
+    },
+    {
+      "name": "04-文件管理(DFS)",
+      "item": [
+        {
+          "name": "创建目录",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('创建目录', () => { const j = pm.response.json(); pm.expect(j.code).to.eql(200); });"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/folder",
+            "body": { "mode": "raw", "raw": "{\"name\":\"测试目录\",\"parentId\":0}", "options": { "raw": { "language": "json" } } }
+          }
+        },
+        {
+          "name": "目录树",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('目录树', () => { const j = pm.response.json(); pm.expect(j.code).to.eql(200); });"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/folder/tree" }
+        },
+        {
+          "name": "文件列表",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('文件列表', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/file/list?pageNum=1&pageSize=10" }
+        }
+      ]
+    },
+    {
+      "name": "05-分享管理",
+      "item": [
+        {
+          "name": "我的分享列表",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('分享列表', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/share/list" }
+        }
+      ]
+    },
+    {
+      "name": "06-团队管理",
+      "item": [
+        {
+          "name": "我的团队列表",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('团队列表', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/team/list" }
+        }
+      ]
+    },
+    {
+      "name": "07-Dashboard",
+      "item": [
+        {
+          "name": "仪表盘统计",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('仪表盘', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/dashboard/stats" }
+        }
+      ]
+    },
+    {
+      "name": "08-权限越权测试(Auth)",
+      "item": [
+        {
+          "name": "TC-AUTH-001 未登录访问用户列表",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('401拦截', () => pm.response.to.have.status(500) || pm.response.to.have.status(401));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/system/user/list", "auth": { "type": "noauth" } }
+        },
+        {
+          "name": "TC-AUTH-002 未登录访问文件列表",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('401拦截', () => pm.response.to.have.status(500) || pm.response.to.have.status(401));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/file/list", "auth": { "type": "noauth" } }
+        },
+        {
+          "name": "TC-AUTH-003 未登录访问目录树",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('401拦截', () => pm.response.to.have.status(500) || pm.response.to.have.status(401));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/folder/tree", "auth": { "type": "noauth" } }
+        },
+        {
+          "name": "TC-AUTH-004 未登录访问团队列表",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('401拦截', () => pm.response.to.have.status(500) || pm.response.to.have.status(401));"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/team/list", "auth": { "type": "noauth" } }
+        },
+        {
+          "name": "TC-AUTH-005 未登录访问分享(白名单-应放行)",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('分享访问应放行', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }],
+          "request": { "method": "POST", "url": "{{baseUrl}}/api/share/access/test-code", "auth": { "type": "noauth" }, "body": { "mode": "raw", "raw": "{\"password\":\"\"}", "options": { "raw": { "language": "json" } } } }
+        }
+      ]
+    }
+  ]
+}
