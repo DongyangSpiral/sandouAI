@@ -36,3 +36,8 @@ test_*.dat
 # Python
 __pycache__/
 *.pyc
+mysql-data/
+HZY.err
+recover.py
+found_team_service.txt
+*.bat
