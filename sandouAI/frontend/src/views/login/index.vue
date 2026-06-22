@@ -1,7 +1,16 @@
 <template>
   <div class="login-container">
+    <aside class="login-showcase">
+      <div class="brand"><span><el-icon><FolderOpened /></el-icon></span><div><strong>Sandou Drive</strong><small>企业文件协作中心</small></div></div>
+      <div class="showcase-copy"><p>ONE WORKSPACE</p><h1>让每一份资料<br />都有清晰的归属。</h1><span>文件、团队协作与统一身份管理，集中在一个可靠的工作空间。</span></div>
+      <div class="showcase-card"><div><el-icon><Lock /></el-icon><span>安全访问控制</span></div><div><el-icon><Connection /></el-icon><span>团队实时协作</span></div><div><el-icon><MagicStick /></el-icon><span>AI 文档辅助</span></div></div>
+      <small class="showcase-foot">SANDOU DRIVE · WORKSPACE PLATFORM</small>
+    </aside>
+    <section class="login-panel">
     <div class="login-card">
+      <p class="panel-kicker">WELCOME BACK</p>
       <h2 class="login-title">UAMS 统一认证管理系统</h2>
+      <p class="login-subtitle">登录后继续管理你的文件与协作空间。</p>
       <el-tabs v-model="loginType" class="login-tabs">
         <el-tab-pane label="管理后台登录" name="admin" />
         <el-tab-pane label="密码登录" name="password" />
@@ -70,6 +79,7 @@
       </el-form>
     </div>
     <div class="login-footer">Copyright © 2025-2026 DeepSeek. All Rights Reserved.</div>
+    </section>
   </div>
 </template>
 
@@ -77,6 +87,7 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { Connection, FolderOpened, Lock, MagicStick } from '@element-plus/icons-vue'
 import { systemLogin } from '../../api/system'
 import { passwordLogin, sendSms, smsLogin, getCorps, enterpriseLogin } from '../../api/uas'
 
@@ -214,36 +225,5 @@ async function handleEnterpriseLogin() {
 </script>
 
 <style scoped>
-.login-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-.login-card {
-  width: 420px;
-  padding: 40px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.2);
-}
-.login-title {
-  text-align: center;
-  color: #303133;
-  margin-bottom: 24px;
-  font-size: 22px;
-}
-.login-tabs {
-  margin-bottom: 20px;
-}
-.login-btn {
-  width: 100%;
-}
-.login-footer {
-  margin-top: 16px;
-  color: rgba(255,255,255,0.7);
-  font-size: 13px;
-}
+.login-container { display:grid; grid-template-columns:minmax(520px,1.08fr) minmax(470px,.92fr); min-height:100vh; background:#f7f8fc; }.login-showcase { position:relative; display:flex; flex-direction:column; overflow:hidden; padding:48px clamp(48px,7vw,108px); color:#fff; background:linear-gradient(135deg,#201c64,#4840d7 55%,#7168f0); }.login-showcase::before,.login-showcase::after { position:absolute; border:1px solid rgba(255,255,255,.15); border-radius:50%; content:''; }.login-showcase::before { right:-225px; bottom:-245px; width:560px; height:560px; }.login-showcase::after { right:35px; bottom:-155px; width:320px; height:320px; }.brand { z-index:1; display:flex; align-items:center; gap:11px; }.brand > span { display:grid; width:38px; height:38px; place-items:center; border-radius:11px; background:rgba(255,255,255,.16); font-size:20px; }.brand strong,.brand small { display:block; }.brand strong { font-size:15px; }.brand small { margin-top:2px; color:#c1befb; font-size:10px; }.showcase-copy { z-index:1; margin:auto 0; }.showcase-copy p { margin:0 0 13px; color:#b9b5ff; font-size:10px; font-weight:800; letter-spacing:.16em; }.showcase-copy h1 { margin:0; font-size:clamp(34px,3.5vw,51px); line-height:1.19; letter-spacing:-1.8px; }.showcase-copy > span { display:block; max-width:415px; margin-top:18px; color:#d1cffd; font-size:13px; line-height:1.8; }.showcase-card { z-index:1; display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }.showcase-card div { display:flex; flex-direction:column; gap:9px; min-height:88px; padding:14px; border:1px solid rgba(255,255,255,.11); border-radius:12px; background:rgba(255,255,255,.09); }.showcase-card svg { color:#b9f5e7; font-size:19px; }.showcase-card span { color:#e7e6ff; font-size:11px; }.showcase-foot { z-index:1; margin-top:28px; color:#aaa6e8; font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.08em; }.login-panel { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px; }.login-card { width:min(100%,390px); padding:42px; border:1px solid #ecedf3; border-radius:19px; background:#fff; box-shadow:0 22px 55px rgba(42,47,87,.09); }.panel-kicker { margin:0 0 8px; color:#7168e8; font-size:10px; font-weight:800; letter-spacing:.13em; }.login-title { margin:0; color:#263147; font-size:22px; letter-spacing:-.4px; }.login-subtitle { margin:8px 0 25px; color:#8e98aa; font-size:12px; }.login-tabs { margin-bottom:24px; }.login-btn { width:100%; height:42px; border-radius:9px; font-weight:700; }.login-footer { width:min(100%,390px); margin-top:17px; color:#a6aebe; font-size:10px; text-align:center; }:deep(.el-tabs__item) { color:#929bad; font-size:12px; }:deep(.el-tabs__item.is-active) { color:#574fe0; font-weight:700; }:deep(.el-tabs__active-bar) { background:#574fe0; }:deep(.el-input__wrapper) { min-height:42px; border-radius:9px; background:#fbfcff; }
 </style>

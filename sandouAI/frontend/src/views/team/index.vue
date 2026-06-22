@@ -2,10 +2,14 @@
   <div class="team-container">
     <div class="top-nav glass-container">
       <div class="nav-left">
-        <h2>团队协作空间</h2>
-        <el-button type="primary" link @click="$router.push('/dashboard')">返回工作台</el-button>
-        <el-divider direction="vertical" />
-        <el-button type="primary" link @click="$router.push('/dfs')">个人文件</el-button>
+        <p class="eyebrow">TEAM COLLABORATION SPACE</p>
+        <h2>团队空间</h2>
+        <p class="hero-description">与成员共享文件、协作推进项目。</p>
+        <div class="hero-nav">
+          <el-button text @click="$router.push('/dashboard')"><el-icon><ArrowLeft /></el-icon>返回概览</el-button>
+          <span></span>
+          <el-button text @click="$router.push('/dfs')"><el-icon><FolderOpened /></el-icon>我的文件</el-button>
+        </div>
       </div>
       <div class="nav-right">
         <el-button v-if="isAdmin" type="primary" @click="createDialogVisible = true">创建新团队</el-button>
@@ -71,7 +75,7 @@
 import { ref, onMounted } from 'vue'
 import { getTeamList, createTeam, getPendingInvites, acceptInvite, rejectInvite } from '@/api/team'
 import { ElMessage } from 'element-plus'
-import { Bell } from '@element-plus/icons-vue'
+import { ArrowLeft, Bell, FolderOpened } from '@element-plus/icons-vue'
 
 const teamList = ref([])
 const invites = ref([])
@@ -161,8 +165,7 @@ onMounted(() => {
 
 <style scoped>
 .team-container {
-  padding: 20px;
-  max-width: 1200px;
+  max-width: 1500px;
   margin: 0 auto;
 }
 
@@ -170,8 +173,12 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 25px;
-  margin-bottom: 30px;
+  min-height: 142px;
+  padding: 28px 32px;
+  margin-bottom: 20px;
+  color: #fff;
+  background: linear-gradient(110deg, #073d4a, #0b7a82 58%, #15a6a1);
+  box-shadow: 0 16px 30px rgba(14, 165, 164, .16);
 }
 
 .nav-left {
@@ -182,23 +189,39 @@ onMounted(() => {
 
 .nav-left h2 {
   margin: 0;
-  font-size: 20px;
-  color: #333;
+  font-size: 27px;
+  color: #fff;
+  letter-spacing: -.5px;
 }
+
+.eyebrow { margin: 0 0 7px; color: #a8eeea; font-size: 10px; font-weight: 800; letter-spacing: .13em; }
+.hero-description { margin: 7px 0 0; color: rgba(255,255,255,.74); font-size: 12px; }
+.hero-nav { display: flex; align-items: center; gap: 5px; margin-top: 13px; }
+.hero-nav span { width: 1px; height: 13px; margin: 0 5px; background: rgba(255,255,255,.3); }
+.hero-nav :deep(.el-button) { height: 25px; padding: 0 5px; color: #fff; font-size: 11px; }
+.hero-nav :deep(.el-button:hover) { color: #fff; background: rgba(255,255,255,.12); }
+.top-nav .nav-right :deep(.el-button) { border: 0; background: #fff; color: #087b7d; font-weight: 700; }
 
 .team-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(275px, 1fr));
+  gap: 15px;
 }
 
 .team-card {
-  padding: 20px;
+  position: relative;
+  min-height: 168px;
+  padding: 22px;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  background: #fff;
+  border: 1px solid #e7edf1;
+  box-shadow: none;
 }
+
+.team-card::before { position: absolute; top: 0; left: 0; width: 5px; height: 100%; border-radius: 14px 0 0 14px; background: #17a6a2; content: ''; }
 
 .team-header {
   display: flex;
@@ -208,26 +231,27 @@ onMounted(() => {
 
 .team-header h3 {
   margin: 0;
-  font-size: 18px;
-  color: #2c3e50;
+  font-size: 16px;
+  color: #304254;
 }
 
 .team-body p {
   margin: 5px 0;
-  font-size: 14px;
-  color: #666;
+  font-size: 12px;
+  color: #718096;
 }
 
 .team-body .desc {
-  color: #999;
-  font-size: 13px;
-  margin-top: 10px;
+  margin-top: 14px;
+  color: #9aa5b4;
+  font-size: 11px;
 }
 
 .invite-card {
   padding: 15px;
-  background: rgba(255, 255, 255, 0.5);
-  border-radius: 8px;
+  background: #fffdf5;
+  border: 1px solid #ffedba;
+  border-radius: 10px;
   margin-top: 10px;
   display: flex;
   justify-content: space-between;

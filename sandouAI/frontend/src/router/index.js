@@ -40,6 +40,11 @@ const routes = [
     component: () => import('../views/dfs/index.vue')
   },
   {
+    path: '/dfs/share',
+    name: 'DfsShare',
+    component: () => import('../views/dfs/share.vue')
+  },
+  {
     path: '/team',
     name: 'TeamHome',
     component: () => import('../views/team/index.vue')

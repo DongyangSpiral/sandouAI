@@ -1,192 +1,34 @@
 <template>
-  <el-dialog v-model="visible" title="AI 文档智能分析" width="60%" custom-class="glass-container" :destroy-on-close="true">
-    <div v-if="file" class="ai-container">
-      <div class="file-info">
-        <h3>当前文件: {{ file.name }}</h3>
-        <el-button size="small" type="primary" :loading="summarizing" @click="getSummary">
-          生成全文摘要
-        </el-button>
-      </div>
-      
-      <div v-if="summary" class="summary-box glass-card">
-        <h4>文档摘要:</h4>
-        <p>{{ summary }}</p>
-      </div>
-
-      <div class="chat-area">
-        <div class="messages" ref="msgList">
-          <div v-for="(msg, index) in messages" :key="index" :class="['message', msg.role]">
-            <div class="msg-content">{{ msg.content }}</div>
-          </div>
-        </div>
-        
-        <div class="input-area">
-          <el-input
-            v-model="question"
-            type="textarea"
-            :rows="2"
-            placeholder="向 AI 提问关于本文档的内容..."
-            @keyup.enter.prevent="askQuestion"
-          />
-          <el-button type="primary" :loading="asking" @click="askQuestion">发送</el-button>
-        </div>
-      </div>
+  <el-drawer v-model="visible" direction="rtl" size="460px" :with-header="false" class="ai-drawer">
+    <div v-if="file" class="ai-workspace">
+      <header class="ai-header"><div class="ai-brand"><span><el-icon><MagicStick /></el-icon></span><div><p>AI DOCUMENT ASSISTANT</p><h2>文档智能助手</h2></div></div><el-button text circle @click="visible = false"><el-icon><Close /></el-icon></el-button></header>
+      <section class="file-context"><span class="file-icon"><el-icon><Document /></el-icon></span><div><strong>{{ file.name }}</strong><small>{{ file.extension?.toUpperCase() || '文档' }} · 已关联当前会话</small></div><el-tag size="small" type="success">已就绪</el-tag></section>
+      <p v-if="serviceNotice" class="service-notice"><el-icon><WarningFilled /></el-icon>{{ serviceNotice }}</p>
+      <section class="quick-actions"><p>快速处理</p><div><el-button v-for="action in quickActions" :key="action.label" plain size="small" :loading="asking && activeAction === action.label" @click="runQuickAction(action)"><el-icon><component :is="action.icon" /></el-icon>{{ action.label }}</el-button></div></section>
+      <section ref="msgList" class="messages"><div v-if="!messages.length" class="ai-empty"><span><el-icon><ChatDotRound /></el-icon></span><strong>从一个问题开始</strong><p>可以让 AI 总结文档、提炼要点，或识别待办事项。</p></div><div v-for="(msg, index) in messages" :key="index" :class="['message', msg.role]"><small>{{ msg.role === 'user' ? '你' : 'AI 助手' }}</small><div>{{ msg.content }}</div><el-button v-if="msg.role === 'ai'" text size="small" @click="copyText(msg.content)"><el-icon><CopyDocument /></el-icon>复制</el-button></div><div v-if="asking" class="message ai thinking"><span></span><span></span><span></span></div></section>
+      <footer class="ai-input"><el-input v-model="question" type="textarea" :rows="3" resize="none" placeholder="针对当前文档继续提问…（Ctrl + Enter 发送）" @keydown.ctrl.enter.prevent="askQuestion" /><div><span>AI 结果仅供参考，请结合原文确认。</span><el-button type="primary" :loading="asking" @click="askQuestion"><el-icon><Promotion /></el-icon>发送</el-button></div></footer>
     </div>
-  </el-dialog>
+  </el-drawer>
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue'
-import { aiSummarize, aiAnalyze } from '@/api/ai'
+import { nextTick, ref } from 'vue'
+import { ChatDotRound, Close, CopyDocument, Document, List, MagicStick, Promotion, Reading, Tickets, WarningFilled } from '@element-plus/icons-vue'
+import { aiAnalyze, aiSummarize } from '@/api/ai'
 import { ElMessage } from 'element-plus'
 
-const visible = ref(false)
-const file = ref(null)
-const summary = ref('')
-const summarizing = ref(false)
-const asking = ref(false)
-const question = ref('')
-const messages = ref([])
-const msgList = ref(null)
-
-const open = (fileRow) => {
-  file.value = fileRow
-  summary.value = ''
-  messages.value = []
-  question.value = ''
-  visible.value = true
-}
-
-const getSummary = async () => {
-  if (!file.value) return
-  summarizing.value = true
-  try {
-    const res = await aiSummarize({ fileId: file.value.id })
-    summary.value = res.data.data || res.data
-  } catch (error) {
-    ElMessage.error('摘要生成失败')
-  } finally {
-    summarizing.value = false
-  }
-}
-
-const askQuestion = async () => {
-  if (!question.value.trim() || asking.value) return
-  
-  const q = question.value.trim()
-  messages.value.push({ role: 'user', content: q })
-  question.value = ''
-  asking.value = true
-  
-  scrollToBottom()
-  
-  try {
-    const res = await aiAnalyze({ fileId: file.value.id, question: q })
-    messages.value.push({ role: 'ai', content: res.data.data || res.data })
-  } catch (error) {
-    messages.value.push({ role: 'ai', content: '抱歉，分析出错。请稍后重试。' })
-  } finally {
-    asking.value = false
-    scrollToBottom()
-  }
-}
-
-const scrollToBottom = () => {
-  nextTick(() => {
-    if (msgList.value) {
-      msgList.value.scrollTop = msgList.value.scrollHeight
-    }
-  })
-}
-
+const visible = ref(false); const file = ref(null); const question = ref(''); const messages = ref([]); const asking = ref(false); const activeAction = ref(''); const msgList = ref(null); const serviceNotice = ref('')
+const quickActions = [{ label: '生成摘要', prompt: '', icon: Reading, summary: true }, { label: '提取要点', prompt: '请提取这份文档的核心要点，使用清晰的项目符号列出。', icon: List }, { label: '生成待办', prompt: '请从文档中识别可执行的待办事项，并尽可能给出负责人、截止时间和优先级。', icon: Tickets }, { label: '风险检查', prompt: '请检查文档中的风险、缺失信息、矛盾点或需要进一步确认的事项。', icon: WarningFilled }]
+function open(fileRow) { file.value = fileRow; question.value = ''; messages.value = []; serviceNotice.value = ''; activeAction.value = ''; visible.value = true }
+async function runQuickAction(action) { if (asking.value) return; activeAction.value = action.label; if (action.summary) { messages.value.push({ role: 'user', content: '请生成全文摘要。' }); await requestSummary() } else { question.value = action.prompt; await askQuestion() } activeAction.value = '' }
+async function requestSummary() { asking.value = true; scrollToBottom(); try { const { data } = await aiSummarize({ fileId: file.value.id }); messages.value.push({ role: 'ai', content: data.data || data }) } catch (error) { handleAiError(error) } finally { asking.value = false; scrollToBottom() } }
+async function askQuestion() { if (!question.value.trim() || asking.value) return; const prompt = question.value.trim(); question.value = ''; messages.value.push({ role: 'user', content: prompt }); asking.value = true; scrollToBottom(); try { const { data } = await aiAnalyze({ fileId: file.value.id, question: prompt }); messages.value.push({ role: 'ai', content: data.data || data }) } catch (error) { handleAiError(error) } finally { asking.value = false; scrollToBottom() } }
+function handleAiError(error) { const message = error.response?.data?.message || 'AI 服务暂时不可用，请稍后重试。'; serviceNotice.value = 'AI 服务未配置、额度不足或暂时不可用。文件管理不受影响。'; messages.value.push({ role: 'ai', content: `本次处理未完成：${message}` }) }
+async function copyText(text) { try { await navigator.clipboard.writeText(text); ElMessage.success('内容已复制') } catch (e) { ElMessage.warning('复制失败，请手动选择文本') } }
+function scrollToBottom() { nextTick(() => { if (msgList.value) msgList.value.scrollTop = msgList.value.scrollHeight }) }
 defineExpose({ open })
 </script>
 
 <style scoped>
-.ai-container {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.file-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.summary-box {
-  padding: 15px;
-  margin-bottom: 10px;
-}
-
-.summary-box p {
-  line-height: 1.6;
-  color: #444;
-}
-
-.chat-area {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  height: 350px;
-  border: 1px solid var(--glass-border);
-  border-radius: 8px;
-  padding: 15px;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  box-shadow: var(--glass-shadow);
-}
-
-.messages {
-  flex-grow: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.message {
-  max-width: 80%;
-  padding: 10px 15px;
-  border-radius: 15px;
-  line-height: 1.5;
-}
-
-.message.user {
-  align-self: flex-end;
-  background-color: #409EFF;
-  color: white;
-  border-bottom-right-radius: 0;
-}
-
-.message.ai {
-  align-self: flex-start;
-  background-color: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
-  color: #333;
-  border: 1px solid var(--glass-border);
-  border-bottom-left-radius: 0;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-}
-
-.input-area {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-:deep(.el-dialog.glass-container) {
-  background: rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  border-radius: 12px;
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
-}
-:deep(.el-dialog__header) {
-  background: transparent;
-}
+.ai-workspace { display:flex; flex-direction:column; height:100%; margin:-20px; background:#fbfcff; }.ai-header { display:flex; align-items:center; justify-content:space-between; padding:21px 21px 17px; background:#fff; border-bottom:1px solid #edf0f5; }.ai-brand { display:flex; align-items:center; gap:10px; }.ai-brand > span { display:grid; width:34px; height:34px; place-items:center; border-radius:10px; color:#fff; background:linear-gradient(135deg,#5f58e8,#958dff); }.ai-brand p { margin:0 0 3px; color:#8f98aa; font-size:9px; font-weight:800; letter-spacing:.1em; }.ai-brand h2 { margin:0; color:#2d3750; font-size:16px; }.file-context { display:flex; align-items:center; gap:9px; margin:14px 17px 8px; padding:11px; border:1px solid #e6e8fb; border-radius:11px; background:#f4f4ff; }.file-context .file-icon { display:grid; width:31px; height:31px; place-items:center; border-radius:8px; color:#635be6; background:#e4e2ff; }.file-context div { flex:1; min-width:0; }.file-context strong,.file-context small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.file-context strong { color:#4c566b; font-size:11px; }.file-context small { margin-top:3px; color:#98a1b4; font-size:9px; }.service-notice { display:flex; align-items:center; gap:6px; margin:8px 17px; padding:9px 10px; border-radius:8px; color:#a6681d; background:#fff5e6; font-size:10px; line-height:1.5; }.quick-actions { padding:8px 17px 13px; }.quick-actions > p { margin:0 0 8px; color:#9aa3b3; font-size:10px; font-weight:800; }.quick-actions > div { display:flex; flex-wrap:wrap; gap:6px; }.quick-actions :deep(.el-button) { margin:0; border-color:#e5e7ef; color:#59657b; font-size:10px; }.messages { flex:1; overflow:auto; display:flex; flex-direction:column; gap:11px; padding:15px 17px; border-top:1px solid #edf0f5; background:#fff; }.ai-empty { display:flex; flex:1; flex-direction:column; align-items:center; justify-content:center; color:#9099aa; text-align:center; }.ai-empty span { display:grid; width:47px; height:47px; place-items:center; border-radius:15px; color:#746df0; background:#f0efff; font-size:23px; }.ai-empty strong { margin-top:12px; color:#59647a; font-size:12px; }.ai-empty p { max-width:220px; margin:6px 0; font-size:10px; line-height:1.6; }.message { max-width:88%; padding:10px 12px; border-radius:12px; line-height:1.65; white-space:pre-wrap; word-break:break-word; }.message > small { display:block; margin-bottom:4px; font-size:9px; font-weight:800; }.message.user { align-self:flex-end; color:#fff; border-bottom-right-radius:3px; background:#625be7; }.message.user small { color:#d9d7ff; }.message.ai { align-self:flex-start; color:#465168; border:1px solid #eaedf2; border-bottom-left-radius:3px; background:#f8f9fc; font-size:11px; }.message.ai small { color:#7b75e8; }.message.ai :deep(.el-button) { height:19px; margin:5px -3px -3px; color:#8c87ed; font-size:9px; }.thinking { display:flex; gap:4px; align-items:center; min-height:36px; }.thinking span { width:5px; height:5px; border-radius:50%; background:#8b85ef; animation:bounce 1s infinite alternate; }.thinking span:nth-child(2) { animation-delay:.2s; }.thinking span:nth-child(3) { animation-delay:.4s; }.ai-input { padding:13px 17px 16px; border-top:1px solid #edf0f5; background:#fbfcff; }.ai-input > div { display:flex; align-items:center; justify-content:space-between; margin-top:8px; }.ai-input span { color:#a0a8b7; font-size:9px; }.ai-input :deep(.el-button) { height:30px; font-size:11px; }@keyframes bounce { to { transform:translateY(-4px); opacity:.45; } }
 </style>

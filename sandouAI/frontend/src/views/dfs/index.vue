@@ -1,192 +1,85 @@
 <template>
-  <div class="dfs-container">
-    <!-- Top Navigation -->
-    <div class="top-nav glass-container">
-      <div class="nav-left">
-        <h2>文件协作平台</h2>
-        <el-button type="primary" link @click="$router.push('/dashboard')">返回工作台</el-button>
-        <el-divider direction="vertical" />
-        <el-button type="primary" link @click="$router.push('/team')">团队空间</el-button>
-      </div>
-      <div class="nav-right">
-        <el-upload
-          class="upload-btn"
-          action="/api/file/upload"
-          :headers="uploadHeaders"
-          :show-file-list="false"
-          :on-success="handleUploadSuccess"
-          :on-error="handleUploadError"
-        >
-          <el-button type="primary" :icon="Upload">上传文件</el-button>
-        </el-upload>
-      </div>
-    </div>
+  <div class="drive-page">
+    <section class="drive-hero">
+      <div><p class="eyebrow">PERSONAL CLOUD DRIVE</p><h1>我的文件</h1><p>将资料、项目文件与分享内容整理在同一个安全空间。</p><div class="hero-nav"><el-button text @click="$router.push('/dashboard')"><el-icon><ArrowLeft /></el-icon>返回概览</el-button><span></span><el-button text @click="$router.push('/team')"><el-icon><UserFilled /></el-icon>团队空间</el-button></div></div>
+      <div class="space-summary"><div class="space-ring"><span>38<small>%</small></span></div><div><strong>38.4 GB <small>/ 100 GB</small></strong><p>可用空间充足</p><el-progress :percentage="38" :show-text="false" :stroke-width="5" color="#9b96ff" /></div></div>
+    </section>
 
-    <!-- Main Content -->
-    <div class="main-content glass-container">
-      <el-table :data="fileList" style="width: 100%; background: transparent" row-class-name="transparent-row">
-        <el-table-column prop="name" label="文件名" min-width="200">
-          <template #default="{ row }">
-            <el-icon class="file-icon"><Document /></el-icon>
-            <span style="margin-left: 8px">{{ row.name }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="size" label="大小" width="120">
-          <template #default="{ row }">
-            {{ formatSize(row.size) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="createTime" label="上传时间" width="180" />
-        <el-table-column label="操作" width="280" fixed="right">
-          <template #default="{ row }">
-            <el-button link type="primary" @click="handlePreview(row)">预览</el-button>
-            <el-button link type="primary" @click="handleDownload(row)">下载</el-button>
-            <el-button link type="primary" @click="handleShare(row)">分享</el-button>
-            <el-button link type="success" @click="openAI(row)">AI分析</el-button>
-            <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </div>
+    <section class="drive-shell glass-container">
+      <aside class="file-sidebar">
+        <el-button class="upload-primary" type="primary" @click="triggerUpload"><el-icon><UploadFilled /></el-icon>上传文件<small>⌘ U</small></el-button>
+        <input ref="fileInput" class="file-input" type="file" multiple @change="uploadFiles" />
+        <el-button class="new-folder" plain @click="folderDialogVisible = true"><el-icon><FolderAdd /></el-icon>新建文件夹</el-button>
+        <div class="side-group"><p>浏览</p><button :class="{ active: viewMode === 'all' }" @click="selectAll"><el-icon><Files /></el-icon>全部文件<span>{{ fileTotal }}</span></button><button :class="{ active: viewMode === 'recent' }" @click="selectQuick('recent')"><el-icon><Clock /></el-icon>最近访问</button><button :class="{ active: viewMode === 'shared' }" @click="selectQuick('shared')"><el-icon><Share /></el-icon>我的分享</button></div>
+        <div class="side-group folders"><div class="folder-title"><p>我的文件夹</p><el-button text circle size="small" @click="folderDialogVisible = true"><el-icon><Plus /></el-icon></el-button></div><el-tree ref="folderTreeRef" :data="folderTree" :props="treeProps" node-key="id" :expand-on-click-node="false" highlight-current @node-click="selectFolder"><template #default="{ data }"><span class="tree-node"><el-icon><Folder /></el-icon><span>{{ data.name }}</span></span></template></el-tree><p v-if="!folderTree.length" class="empty-tree">还没有文件夹</p></div>
+        <div class="storage-tip"><el-icon><Lock /></el-icon><span>文件已受到加密保护</span></div>
+      </aside>
 
-    <FilePreviewModal ref="previewModal" @download="handleDownload" />
-    <AIChatModal ref="aiModal" />
+      <main class="file-main">
+        <div class="file-toolbar"><div class="breadcrumb"><el-button text circle @click="selectAll"><el-icon><House /></el-icon></el-button><el-icon><ArrowRight /></el-icon><strong>{{ currentFolder?.name || currentViewTitle }}</strong><template v-if="currentFolder"><el-button text size="small" @click="openFolderRename"><el-icon><EditPen /></el-icon>重命名</el-button><el-button text size="small" type="danger" @click="removeCurrentFolder"><el-icon><Delete /></el-icon>删除</el-button></template></div><div class="toolbar-actions"><template v-if="selectedFiles.length"><span class="selection-count">已选 {{ selectedFiles.length }} 项</span><el-button size="small" @click="downloadSelected"><el-icon><Download /></el-icon>下载</el-button><el-button size="small" type="danger" plain @click="deleteSelected"><el-icon><Delete /></el-icon>删除</el-button></template><el-input v-model="keyword" class="search-input" placeholder="搜索文件和文件夹" clearable @keyup.enter="searchFiles"><template #prefix><el-icon><Search /></el-icon></template></el-input><el-button circle @click="fetchFiles"><el-icon><Refresh /></el-icon></el-button><el-dropdown @command="changeSort"><el-button circle><el-icon><Sort /></el-icon></el-button><template #dropdown><el-dropdown-menu><el-dropdown-item command="time">按更新时间</el-dropdown-item><el-dropdown-item command="name">按名称</el-dropdown-item><el-dropdown-item command="size">按大小</el-dropdown-item></el-dropdown-menu></template></el-dropdown></div></div>
+        <div class="list-heading"><div><h2>{{ currentFolder?.name || currentViewTitle }}</h2><p>{{ listDescription }}</p></div><div class="view-toggle"><el-button :class="{ selected: listView === 'list' }" text circle @click="listView = 'list'"><el-icon><List /></el-icon></el-button><el-button :class="{ selected: listView === 'grid' }" text circle @click="listView = 'grid'"><el-icon><Grid /></el-icon></el-button></div></div>
+        <div v-loading="loading" class="file-content">
+          <el-result v-if="!loading && loadError" icon="error" title="文件列表加载失败" sub-title="请检查网络或登录状态后重试。"><template #extra><el-button type="primary" @click="fetchFiles">重新加载</el-button></template></el-result>
+          <el-table v-else-if="listView === 'list'" :data="displayFiles" class="file-table" @row-dblclick="handlePreview" @selection-change="handleSelectionChange"><el-table-column type="selection" width="42" /><el-table-column min-width="330" label="名称"><template #default="{ row }"><div class="file-name"><span class="file-type" :class="fileClass(row)"><el-icon><component :is="fileIcon(row)" /></el-icon></span><div><strong>{{ row.name }}</strong><small>{{ row.extension ? row.extension.toUpperCase() + ' 文件' : '文件' }}</small></div></div></template></el-table-column><el-table-column label="所有者" min-width="150"><template #default><span class="owner"><el-avatar :size="24">我</el-avatar>我</span></template></el-table-column><el-table-column label="修改时间" prop="updateTime" min-width="165"><template #default="{ row }">{{ formatDate(row.updateTime || row.createTime) }}</template></el-table-column><el-table-column label="大小" min-width="105"><template #default="{ row }">{{ formatSize(row.size) }}</template></el-table-column><el-table-column width="120" align="right"><template #default="{ row }"><el-dropdown trigger="click" @command="command => handleCommand(command, row)"><el-button text circle><el-icon><MoreFilled /></el-icon></el-button><template #dropdown><el-dropdown-menu><el-dropdown-item command="preview">预览</el-dropdown-item><el-dropdown-item command="download">下载</el-dropdown-item><el-dropdown-item command="share">创建分享</el-dropdown-item><el-dropdown-item command="ai">AI 分析</el-dropdown-item><el-dropdown-item divided command="delete">删除</el-dropdown-item></el-dropdown-menu></template></el-dropdown></template></el-table-column></el-table>
+          <div v-else class="file-grid"><article v-for="file in displayFiles" :key="file.id" class="file-tile" @dblclick="handlePreview(file)"><span class="file-type large" :class="fileClass(file)"><el-icon><component :is="fileIcon(file)" /></el-icon></span><strong>{{ file.name }}</strong><small>{{ formatSize(file.size) }} · {{ formatDate(file.updateTime || file.createTime) }}</small><el-dropdown trigger="click" @command="command => handleCommand(command, file)"><el-button text circle><el-icon><MoreFilled /></el-icon></el-button><template #dropdown><el-dropdown-menu><el-dropdown-item command="preview">预览</el-dropdown-item><el-dropdown-item command="download">下载</el-dropdown-item><el-dropdown-item command="share">创建分享</el-dropdown-item><el-dropdown-item command="ai">AI 分析</el-dropdown-item><el-dropdown-item divided command="delete">删除</el-dropdown-item></el-dropdown-menu></template></el-dropdown></article></div>
+          <el-empty v-if="!loading && !loadError && !displayFiles.length" :image-size="118" description="这里还没有文件"><template #description><p class="empty-title">{{ keyword ? '没有找到匹配的文件' : '开始上传你的第一个文件吧' }}</p></template><el-button type="primary" @click="triggerUpload">上传文件</el-button></el-empty>
+        </div>
+      </main>
+    </section>
+
+    <el-dialog v-model="folderDialogVisible" title="新建文件夹" width="400px"><p class="dialog-subtitle">将在“{{ currentFolder?.name || '我的文件' }}”中创建文件夹。</p><el-input v-model="folderName" autofocus placeholder="例如：2026 项目方案" @keyup.enter="createNewFolder" /><template #footer><el-button @click="folderDialogVisible = false">取消</el-button><el-button type="primary" :loading="creatingFolder" @click="createNewFolder">创建</el-button></template></el-dialog>
+    <el-dialog v-model="folderRenameVisible" title="重命名文件夹" width="400px"><el-input v-model="folderRenameValue" autofocus @keyup.enter="renameCurrentFolder" /><template #footer><el-button @click="folderRenameVisible = false">取消</el-button><el-button type="primary" :loading="renamingFolder" @click="renameCurrentFolder">保存</el-button></template></el-dialog>
+    <el-dialog v-model="shareDialogVisible" title="创建分享链接" width="430px"><div class="share-file"><span class="file-type" :class="fileClass(selectedFile || {})"><el-icon><Document /></el-icon></span><strong>{{ selectedFile?.name }}</strong></div><el-form label-position="top"><el-form-item label="访问密码（可选）"><el-input v-model="shareForm.password" placeholder="留空则无需密码" /></el-form-item><el-form-item label="失效时间（可选）"><el-date-picker v-model="shareForm.expireTime" type="datetime" value-format="YYYY-MM-DDTHH:mm:ss" placeholder="永久有效" style="width:100%" /></el-form-item><el-form-item><el-checkbox v-model="shareForm.allowDownload">允许下载</el-checkbox></el-form-item></el-form><template #footer><el-button @click="shareDialogVisible = false">取消</el-button><el-button type="primary" :loading="creatingShare" @click="submitShare">创建链接</el-button></template></el-dialog>
+    <FilePreviewModal ref="previewModal" @download="handleDownload" /><AIChatModal ref="aiModal" />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { Document, Upload } from '@element-plus/icons-vue'
-import { getFileList, deleteFile, downloadFile } from '@/api/dfs'
+import { computed, onMounted, ref } from 'vue'
+import { ArrowLeft, ArrowRight, Clock, Delete, Document, Download, EditPen, Files, Folder, FolderAdd, Grid, House, List, Lock, MoreFilled, Picture, Plus, Refresh, Search, Share, Sort, UploadFilled, UserFilled, VideoCamera } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { createFolder, createShare, deleteFile, deleteFolder, downloadFile, getFileList, getFolderTree, renameFolder } from '@/api/dfs'
 import AIChatModal from '../components/AIChatModal.vue'
 import FilePreviewModal from '../components/FilePreviewModal.vue'
 
-const fileList = ref([])
-const aiModal = ref(null)
-const previewModal = ref(null)
-
-const uploadHeaders = {
-  Authorization: localStorage.getItem('token')
-}
-
-const fetchFiles = async () => {
-  try {
-    const res = await getFileList({ pageNum: 1, pageSize: 50 })
-    const payload = res.data.data || []
-    fileList.value = Array.isArray(payload) ? payload : (payload.list || payload.records || [])
-  } catch (error) {
-    console.error('获取文件列表失败', error)
-  }
-}
-
-const handleUploadSuccess = (response) => {
-  if (response.code === 200) {
-    ElMessage.success('上传成功')
-    fetchFiles()
-  } else {
-    ElMessage.error(response.message || '上传失败')
-  }
-}
-
-const handleUploadError = () => {
-  ElMessage.error('上传失败')
-}
-
-const handlePreview = (row) => {
-  previewModal.value.open(row)
-}
-
-const handleDownload = async (row) => {
-  try {
-    const res = await downloadFile(row.id)
-    const url = window.URL.createObjectURL(new Blob([res.data]))
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', row.name)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  } catch (error) {
-    ElMessage.error('下载失败')
-  }
-}
-
-const handleDelete = (row) => {
-  ElMessageBox.confirm('确定要删除该文件吗?', '提示', { type: 'warning' }).then(async () => {
-    try {
-      await deleteFile(row.id)
-      ElMessage.success('删除成功')
-      fetchFiles()
-    } catch (error) {}
-  }).catch(() => {})
-}
-
-const handleShare = (row) => {
-  // Share logic mockup
-  ElMessage.success('分享链接已生成并复制到剪贴板')
-}
-
-const openAI = (row) => {
-  aiModal.value.open(row)
-}
-
-const formatSize = (size) => {
-  if (!size) return '0 B'
-  const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(size) / Math.log(k))
-  return (size / Math.pow(k, i)).toPrecision(3) + ' ' + sizes[i]
-}
-
-onMounted(() => {
-  fetchFiles()
-})
+const folderTree = ref([]); const fileList = ref([]); const loading = ref(false); const loadError = ref(false); const fileInput = ref(null); const folderTreeRef = ref(null); const previewModal = ref(null); const aiModal = ref(null)
+const currentFolder = ref(null); const viewMode = ref('all'); const listView = ref('list'); const keyword = ref(''); const sortBy = ref('time'); const fileTotal = ref(0)
+const folderDialogVisible = ref(false); const folderName = ref(''); const creatingFolder = ref(false); const folderRenameVisible = ref(false); const folderRenameValue = ref(''); const renamingFolder = ref(false); const selectedFiles = ref([]); const shareDialogVisible = ref(false); const creatingShare = ref(false); const selectedFile = ref(null); const shareForm = ref({ password: '', expireTime: '', allowDownload: true })
+const treeProps = { children: 'children', label: 'name' }
+const currentViewTitle = computed(() => ({ all: '全部文件', recent: '最近访问', shared: '我的分享' }[viewMode.value] || '全部文件'))
+const listDescription = computed(() => keyword.value ? `“${keyword.value}”的搜索结果` : currentFolder.value ? '此文件夹中的所有内容' : '集中管理你的个人文件')
+const displayFiles = computed(() => { const list = [...fileList.value]; if (viewMode.value === 'recent') list.sort((a, b) => new Date(b.updateTime || b.createTime) - new Date(a.updateTime || a.createTime)); if (sortBy.value === 'name') list.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN')); if (sortBy.value === 'size') list.sort((a, b) => (b.size || 0) - (a.size || 0)); return list })
+function responseList(data) { if (Array.isArray(data)) return data; return data?.records || data?.list || data?.rows || [] }
+async function fetchFiles() { loading.value = true; loadError.value = false; try { const { data } = await getFileList({ pageNum: 1, pageSize: 100, folderId: currentFolder.value?.id, name: keyword.value || undefined }); const payload = data.data; fileList.value = responseList(payload); fileTotal.value = payload?.total ?? fileList.value.length } catch (e) { fileList.value = []; loadError.value = true } finally { loading.value = false } }
+async function fetchFolders() { try { const { data } = await getFolderTree(); folderTree.value = data.data || [] } catch (e) { folderTree.value = [] } }
+function selectFolder(node) { currentFolder.value = node; viewMode.value = 'folder'; keyword.value = ''; selectedFiles.value = []; fetchFiles() }
+function selectAll() { currentFolder.value = null; viewMode.value = 'all'; keyword.value = ''; fetchFiles() }
+function selectQuick(mode) { if (mode === 'shared') return window.location.assign('/dfs/share'); currentFolder.value = null; viewMode.value = mode; keyword.value = ''; fetchFiles() }
+function searchFiles() { currentFolder.value = null; viewMode.value = 'all'; fetchFiles() }
+function changeSort(command) { sortBy.value = command }
+function triggerUpload() { fileInput.value?.click() }
+async function uploadFiles(event) { const files = [...(event.target.files || [])]; if (!files.length) return; const { default: request } = await import('@/api/request'); try { await Promise.all(files.map(file => { const formData = new FormData(); formData.append('file', file); if (currentFolder.value?.id) formData.append('folderId', currentFolder.value.id); return request.post('/file/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } }) })); ElMessage.success(`${files.length} 个文件上传成功`); fetchFiles() } catch (e) { ElMessage.error('文件上传失败') } finally { event.target.value = '' } }
+async function createNewFolder() { if (!folderName.value.trim()) return ElMessage.warning('请输入文件夹名称'); creatingFolder.value = true; try { await createFolder({ name: folderName.value.trim(), parentId: currentFolder.value?.id || undefined }); ElMessage.success('文件夹创建成功'); folderName.value = ''; folderDialogVisible.value = false; fetchFolders() } finally { creatingFolder.value = false } }
+function openFolderRename() { folderRenameValue.value = currentFolder.value?.name || ''; folderRenameVisible.value = true }
+async function renameCurrentFolder() { if (!folderRenameValue.value.trim()) return ElMessage.warning('请输入文件夹名称'); renamingFolder.value = true; try { await renameFolder({ id: currentFolder.value.id, name: folderRenameValue.value.trim() }); currentFolder.value.name = folderRenameValue.value.trim(); folderRenameVisible.value = false; ElMessage.success('文件夹已重命名'); fetchFolders() } finally { renamingFolder.value = false } }
+async function removeCurrentFolder() { try { await ElMessageBox.confirm(`删除“${currentFolder.value.name}”及其中关联内容？`, '删除文件夹', { type: 'warning' }); await deleteFolder(currentFolder.value.id); currentFolder.value = null; viewMode.value = 'all'; ElMessage.success('文件夹已删除'); await Promise.all([fetchFolders(), fetchFiles()]) } catch (e) {} }
+function handlePreview(file) { previewModal.value?.open(file) }
+async function handleDownload(file) { try { const { data } = await downloadFile(file.id); const url = URL.createObjectURL(new Blob([data])); const anchor = document.createElement('a'); anchor.href = url; anchor.download = file.name; anchor.click(); URL.revokeObjectURL(url) } catch (e) { ElMessage.error('下载失败') } }
+async function handleDelete(file) { try { await ElMessageBox.confirm(`确定删除“${file.name}”吗？`, '删除文件', { type: 'warning', confirmButtonText: '删除', cancelButtonText: '取消' }); await deleteFile(file.id); ElMessage.success('文件已删除'); fetchFiles() } catch (e) {} }
+function handleSelectionChange(rows) { selectedFiles.value = rows }
+async function downloadSelected() { for (const file of selectedFiles.value) await handleDownload(file) }
+async function deleteSelected() { try { await ElMessageBox.confirm(`确定删除选中的 ${selectedFiles.value.length} 个文件吗？`, '批量删除', { type: 'warning' }); await Promise.all(selectedFiles.value.map(file => deleteFile(file.id))); selectedFiles.value = []; ElMessage.success('文件已删除'); fetchFiles() } catch (e) {} }
+function handleCommand(command, file) { if (command === 'preview') handlePreview(file); if (command === 'download') handleDownload(file); if (command === 'share') { selectedFile.value = file; shareForm.value = { password: '', expireTime: '', allowDownload: true }; shareDialogVisible.value = true }; if (command === 'ai') aiModal.value?.open(file); if (command === 'delete') handleDelete(file) }
+async function submitShare() { creatingShare.value = true; try { const payload = { fileId: selectedFile.value.id, allowDownload: shareForm.value.allowDownload }; if (shareForm.value.password?.trim()) payload.password = shareForm.value.password.trim(); if (shareForm.value.expireTime) payload.expireTime = shareForm.value.expireTime; const { data } = await createShare(payload); const share = data.data; await navigator.clipboard?.writeText(`${location.origin}/share/${share.code || share}`); ElMessage.success('分享链接已创建并复制'); shareDialogVisible.value = false } catch (e) { ElMessage.error(e.response?.data?.message || '创建分享失败') } finally { creatingShare.value = false } }
+function formatSize(size) { if (!size) return '0 B'; const units = ['B', 'KB', 'MB', 'GB']; const index = Math.min(Math.floor(Math.log(size) / Math.log(1024)), units.length - 1); return `${(size / 1024 ** index).toFixed(index ? 1 : 0)} ${units[index]}` }
+function formatDate(date) { if (!date) return '刚刚'; const value = new Date(date); if (Number.isNaN(value.getTime())) return date.replace('T', ' '); return new Intl.DateTimeFormat('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(value) }
+function extension(file) { return (file.extension || file.name?.split('.').pop() || '').toLowerCase() }
+function fileClass(file) { const ext = extension(file); if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return 'image'; if (['mp4', 'mov', 'avi'].includes(ext)) return 'video'; if (['pdf'].includes(ext)) return 'pdf'; if (['doc', 'docx'].includes(ext)) return 'word'; if (['xls', 'xlsx'].includes(ext)) return 'sheet'; return 'other' }
+function fileIcon(file) { const kind = fileClass(file); if (kind === 'image') return Picture; if (kind === 'video') return VideoCamera; return Document }
+onMounted(() => { fetchFolders(); fetchFiles() })
 </script>
 
 <style scoped>
-.dfs-container {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.top-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 25px;
-  margin-bottom: 20px;
-}
-
-.nav-left {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.nav-left h2 {
-  margin: 0;
-  font-size: 20px;
-  color: #333;
-}
-
-.main-content {
-  padding: 20px;
-  min-height: 600px;
-}
-
-.file-icon {
-  color: #4a40ffff;
-  vertical-align: middle;
-  font-size: 18px;
-}
-
-:deep(.transparent-row) {
-  background-color: transparent !important;
-}
-
-:deep(.el-table th), :deep(.el-table tr), :deep(.el-table td) {
-  background-color: transparent !important;
-}
+.drive-page { max-width: 1500px; margin: 0 auto; }.drive-hero { display: flex; align-items: center; justify-content: space-between; min-height: 170px; padding: 26px 34px; border-radius: 20px; color: #fff; background: linear-gradient(110deg, #282370, #4f46e5 58%, #736cf0); box-shadow: 0 16px 30px rgba(79,70,229,.19); }.eyebrow { margin: 0 0 7px; color: #c6c3ff; font-size: 10px; font-weight: 800; letter-spacing: .13em; }.drive-hero h1 { margin: 0; font-size: 28px; letter-spacing: -.7px; }.drive-hero > div > p:not(.eyebrow) { margin: 7px 0 0; color: #d9d7ff; font-size: 12px; }.hero-nav { display: flex; align-items: center; gap: 5px; margin-top: 13px; }.hero-nav span { width: 1px; height: 13px; margin: 0 5px; background: rgba(255,255,255,.3); }.hero-nav :deep(.el-button) { height: 25px; padding: 0 5px; color: #fff; font-size: 11px; }.hero-nav :deep(.el-button:hover) { color: #fff; background: rgba(255,255,255,.12); }.space-summary { display: flex; align-items: center; gap: 14px; width: 245px; padding: 14px; border: 1px solid rgba(255,255,255,.13); border-radius: 15px; background: rgba(255,255,255,.1); }.space-ring { display: grid; width: 55px; height: 55px; place-items: center; border: 5px solid #a7a1ff; border-bottom-color: rgba(255,255,255,.25); border-radius: 50%; transform: rotate(38deg); }.space-ring span { font-family: 'DM Mono', monospace; font-size: 15px; transform: rotate(-38deg); }.space-ring small { font-size: 9px; }.space-summary > div:last-child { flex: 1; }.space-summary strong { font-family: 'DM Mono', monospace; font-size: 12px; }.space-summary strong small, .space-summary p { color: #c8c6ff; font-size: 10px; }.space-summary p { margin: 3px 0 8px; }.drive-shell { display: grid; grid-template-columns: 222px minmax(0, 1fr); min-height: 655px; margin-top: 20px; overflow: hidden; background: #fff; }.file-sidebar { display: flex; flex-direction: column; padding: 18px 14px; border-right: 1px solid #edf0f5; background: #fbfcff; }.upload-primary, .new-folder { justify-content: flex-start; width: 100%; margin-bottom: 9px; font-weight: 700; }.upload-primary small { margin-left: auto; color: #d7d5ff; font-family: 'DM Mono', monospace; font-size: 9px; }.new-folder { color: #59647a; border-color: #e4e8f0; }.file-input { display: none; }.side-group { margin-top: 17px; }.side-group > p, .folder-title p { margin: 0 9px 7px; color: #98a2b6; font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }.side-group button { display: flex; align-items: center; width: 100%; gap: 10px; height: 35px; padding: 0 10px; border: 0; border-radius: 8px; color: #69748a; background: transparent; font: inherit; font-size: 12px; cursor: pointer; text-align: left; }.side-group button:hover, .side-group button.active { color: #5149e0; background: #eeedff; font-weight: 700; }.side-group button span { margin-left: auto; color: #9690ec; font-size: 10px; }.folder-title { display: flex; align-items: center; justify-content: space-between; }.folder-title p { margin-bottom: 5px; }.tree-node { display: inline-flex; align-items: center; gap: 7px; color: #69748a; font-size: 12px; }.tree-node svg { color: #f0a927; }.empty-tree { margin: 12px 10px; color: #aab2c1; font-size: 11px; }.file-sidebar :deep(.el-tree) { --el-tree-node-hover-bg-color: #f0f0ff; background: transparent; }.file-sidebar :deep(.el-tree-node__content) { height: 32px; border-radius: 7px; }.file-sidebar :deep(.is-current > .el-tree-node__content) { background: #eeedff; }.storage-tip { display: flex; align-items: center; gap: 7px; margin: auto 4px 0; padding-top: 15px; border-top: 1px solid #edf0f5; color: #a0a8b8; font-size: 10px; }.storage-tip svg { color: #7c75ff; }.file-main { min-width: 0; padding: 21px 26px; }.file-toolbar, .toolbar-actions, .breadcrumb, .list-heading, .view-toggle, .owner, .share-file { display: flex; align-items: center; }.file-toolbar { justify-content: space-between; margin-bottom: 26px; }.breadcrumb { gap: 7px; color: #a4adbb; font-size: 12px; }.breadcrumb strong { color: #48536b; }.toolbar-actions { gap: 7px; }.selection-count { color:#665de8; font-size:11px; font-weight:700; white-space:nowrap; }.search-input { width: 225px; }.list-heading { justify-content: space-between; padding-bottom: 14px; border-bottom: 1px solid #edf0f5; }.list-heading h2 { margin: 0; color: #303a50; font-size: 19px; letter-spacing: -.4px; }.list-heading p { margin: 4px 0 0; color: #9aa4b5; font-size: 11px; }.view-toggle { gap: 2px; padding: 3px; border-radius: 8px; background: #f5f7fb; }.view-toggle :deep(.el-button) { color: #8c97aa; }.view-toggle :deep(.selected) { color: #574fe2; background: #fff; box-shadow: 0 1px 4px rgba(30,45,77,.1); }.file-content { position: relative; min-height: 420px; }.file-table { width: 100%; }.file-table :deep(.el-table__inner-wrapper::before) { display: none; }.file-table :deep(.el-table th.el-table__cell) { height: 48px; }.file-table :deep(.el-table td.el-table__cell) { height: 68px; }.file-name { display: flex; align-items: center; gap: 11px; }.file-name strong, .file-name small { display: block; }.file-name strong { color: #475168; font-size: 12px; }.file-name small { margin-top: 3px; color: #a1a9b8; font-size: 10px; }.file-type { display: grid; flex: 0 0 auto; width: 34px; height: 34px; place-items: center; border-radius: 9px; font-size: 18px; }.file-type.large { width: 47px; height: 47px; font-size: 25px; }.file-type.other { color: #7169ef; background: #eeedff; }.file-type.image { color: #e77c54; background: #fff0ea; }.file-type.video { color: #e04f89; background: #ffebf3; }.file-type.pdf { color: #e25c5f; background: #fff0f0; }.file-type.word { color: #337bed; background: #eaf2ff; }.file-type.sheet { color: #18a56e; background: #e5f9f1; }.owner { gap: 7px; color: #68748a; font-size: 11px; }.owner :deep(.el-avatar) { background: #e7e5ff; color: #5c54e6; font-size: 10px; }.file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; padding-top: 18px; }.file-tile { position: relative; min-height: 148px; padding: 15px; border: 1px solid #e9edf3; border-radius: 13px; cursor: pointer; transition: all .2s; }.file-tile:hover { border-color: #d8d5ff; box-shadow: 0 10px 19px rgba(70,63,190,.09); transform: translateY(-2px); }.file-tile strong, .file-tile small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.file-tile strong { margin-top: 12px; color: #465168; font-size: 12px; }.file-tile small { margin-top: 5px; color: #a0a8b8; font-size: 10px; }.file-tile :deep(.el-button) { position: absolute; top: 10px; right: 8px; color: #98a2b3; }.file-content :deep(.el-empty) { position: absolute; top: 42px; right: 0; left: 0; }.empty-title { margin: 0; color: #7f899c; font-size: 12px; }.dialog-subtitle { margin: -7px 0 18px; color: #8892a4; font-size: 12px; }.share-file { gap: 10px; margin-bottom: 16px; padding: 10px; border-radius: 10px; background: #f7f8ff; color: #465168; font-size: 12px; }
+@media (max-width: 760px) { .drive-hero { min-height:unset; padding:23px; }.space-summary { display:none; }.drive-shell { display:block; min-height:unset; }.file-sidebar { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:12px; border-right:0; border-bottom:1px solid #edf0f5; }.upload-primary,.new-folder { margin:0; }.side-group { display:none; }.folders { display:block; grid-column:1 / -1; max-height:145px; overflow:auto; }.storage-tip { display:none; }.file-main { padding:16px; }.file-toolbar { align-items:flex-start; gap:10px; margin-bottom:18px; }.toolbar-actions { flex-wrap:wrap; justify-content:flex-end; }.search-input { order:3; width:100%; }.breadcrumb strong { max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.file-table :deep(.el-table__cell:nth-child(3)),.file-table :deep(.el-table__cell:nth-child(4)) { display:none; }.file-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }.hero-nav { flex-wrap:wrap; } }
 </style>

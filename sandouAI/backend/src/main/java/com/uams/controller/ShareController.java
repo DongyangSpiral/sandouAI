@@ -24,12 +24,14 @@ public class ShareController {
         Long fileId = body.get("fileId") != null ? Long.valueOf(body.get("fileId").toString()) : null;
         Long folderId = body.get("folderId") != null ? Long.valueOf(body.get("folderId").toString()) : null;
         String password = (String) body.get("password");
-        LocalDateTime expireTime = body.get("expireTime") != null
-                ? LocalDateTime.parse(body.get("expireTime").toString())
-                : null;
+        String expireTimeValue = body.get("expireTime") != null ? body.get("expireTime").toString().trim() : "";
+        LocalDateTime expireTime = expireTimeValue.isEmpty() ? null : LocalDateTime.parse(expireTimeValue);
         Boolean allowDownload = body.get("allowDownload") != null
                 ? Boolean.valueOf(body.get("allowDownload").toString())
                 : true;
+        if (fileId == null && folderId == null) {
+            return Result.error("请选择要分享的文件或文件夹");
+        }
         return Result.ok(shareService.create(fileId, folderId, password, expireTime, allowDownload, userId));
     }
 

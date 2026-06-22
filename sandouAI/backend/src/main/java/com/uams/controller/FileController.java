@@ -76,8 +76,9 @@ public class FileController {
                           @RequestParam(defaultValue = "10") Integer pageSize,
                           @RequestParam(required = false) String name,
                           @RequestParam(required = false) String extension) {
+        long userId = com.uams.common.AuthUtil.getUserId();
         Page<com.uams.entity.DfsFile> page = new Page<>(pageNum, pageSize);
-        return Result.ok(fileService.listByFolder(folderId, page, name, extension));
+        return Result.ok(fileService.listByFolder(folderId, page, name, extension, userId));
     }
 
     @GetMapping("/{id}")
