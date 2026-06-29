@@ -6,7 +6,7 @@
         <div><strong>Sandou Drive</strong><span>企业文件协作中心</span></div>
       </div>
 
-      <el-menu :default-active="activeMenu" router class="nav-menu">
+      <el-menu :default-active="activeMenu" class="nav-menu" @select="handleMenuSelect">
         <p class="nav-label">工作空间</p>
         <el-menu-item index="/dashboard"><el-icon><DataAnalysis /></el-icon><span>概览</span></el-menu-item>
         <el-menu-item index="/dfs"><el-icon><Files /></el-icon><span>我的文件</span></el-menu-item>
@@ -71,6 +71,8 @@
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Bell, DataAnalysis, Files, FolderOpened, Key, Monitor, Setting, Tools, UserFilled } from '@element-plus/icons-vue'
+import { clearAuth } from '@/utils/auth'
+import { goDrive } from '@/config/appEntry'
 
 const route = useRoute()
 const router = useRouter()
@@ -79,9 +81,16 @@ const activeMenu = computed(() => route.path)
 const pageTitle = computed(() => ({ '/dashboard': '概览', '/dfs': '我的文件', '/team': '团队空间' }[route.path] || '管理控制台'))
 const userInitial = computed(() => (userInfo.value?.nickname || userInfo.value?.username || 'A').slice(0, 1).toUpperCase())
 
+function handleMenuSelect(index) {
+  if (index.startsWith('/dfs') || index.startsWith('/team')) {
+    goDrive(index)
+    return
+  }
+  router.push(index)
+}
+
 function handleLogout() {
-  localStorage.removeItem('token')
-  localStorage.removeItem('userInfo')
+  clearAuth()
   router.push('/login')
 }
 </script>

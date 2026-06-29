@@ -1,44 +1,34 @@
 @echo off
+setlocal
 chcp 65001 >nul
-title UAMS 启动器
+title Sandou Drive Launcher
 
-set JAVA_HOME=E:\JDK17.0.13
-set NODE_HOME=E:\node-v20.12.2-win-x64
-set PATH=%NODE_HOME%;%JAVA_HOME%\bin;%PATH%
-set MYSQL_HOME=E:\MySQL\MySQL Server 8.0
-set MYSQL_DATA=E:\Code\sandouAI\sandouAI\mysql-data
-set MYSQL_PORT=3307
+cd /d "%~dp0"
 
-echo [1/3] 检查环境...
-"%JAVA_HOME%\bin\java" -version >nul 2>&1 || ( echo 未找到 Java & pause & exit /b )
-where mvn >nul 2>&1 || ( echo 未找到 Maven & pause & exit /b )
-where node >nul 2>&1 || ( echo 未找到 Node.js & pause & exit /b )
-where npm >nul 2>&1 || ( echo 未找到 npm & pause & exit /b )
-echo 环境检查通过
+where java >nul 2>&1 || (echo Java 17 is required. Please install JDK 17 and add it to PATH.& pause& exit /b 1)
+where mvn >nul 2>&1 || (echo Maven 3.9+ is required. Please install Maven and add it to PATH.& pause& exit /b 1)
+where node >nul 2>&1 || (echo Node.js 18+ is required. Please install Node.js and add it to PATH.& pause& exit /b 1)
+where npm >nul 2>&1 || (echo npm is required. Please install Node.js and add npm to PATH.& pause& exit /b 1)
 
-echo.
-echo [2/3] 启动 MySQL...
-netstat -ano | findstr :%MYSQL_PORT% >nul
-if %errorlevel% equ 0 (
-    echo MySQL 已在端口 %MYSQL_PORT% 运行
-) else (
-    if not exist "%MYSQL_DATA%\mysql" (
-        echo 初始化 MySQL 数据目录...
-        "%MYSQL_HOME%\bin\mysqld" --initialize-insecure --datadir="%MYSQL_DATA%" >nul 2>&1
-    )
-    echo 启动 MySQL...
-    start "UAMS-MySQL" /MIN "%MYSQL_HOME%\bin\mysqld" --datadir="%MYSQL_DATA%" --port=%MYSQL_PORT%
-    timeout /t 5 /nobreak >nul
+if not exist "frontend\node_modules" (
+  echo Installing frontend dependencies...
+  pushd frontend
+  call npm install
+  if errorlevel 1 exit /b 1
+  popd
 )
 
-echo.
-echo [3/3] 启动服务...
-start "UAMS-Backend" cmd /c "cd /d backend && mvn spring-boot:run"
-start "UAMS-Frontend" cmd /c "cd /d frontend && npm run dev"
+echo Starting backend on http://localhost:8080 ...
+start "Sandou-Backend" cmd /k "cd /d %cd%\backend && mvn spring-boot:run"
+
+echo Starting portal frontend on http://localhost:5173 ...
+start "Sandou-Portal" cmd /k "cd /d %cd%\frontend && npm run dev:portal"
+
+echo Starting drive frontend on http://localhost:5174 ...
+start "Sandou-Drive" cmd /k "cd /d %cd%\frontend && npm run dev:drive"
 
 echo.
-echo MySQL: http://localhost:%MYSQL_PORT%
-echo 后端: http://localhost:8080
-echo 前端: http://localhost:5173
+echo Please make sure MySQL, Redis, RabbitMQ and MinIO are running.
+echo You can start them with: docker compose up -d
 echo.
 pause

@@ -4,9 +4,14 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "vite --mode portal",
+    "dev:portal": "vite --mode portal --port 5173",
+    "dev:drive": "vite --mode drive --port 5174",
+    "build": "vite build --mode portal",
+    "build:portal": "vite build --mode portal",
+    "build:drive": "vite build --mode drive --outDir dist-drive",
+    "preview": "vite preview",
+    "preview:drive": "vite preview --outDir dist-drive --port 4174"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",

@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
+import { clearAuth, getToken } from '@/utils/auth'
 
 const request = axios.create({
   baseURL: '/api',
@@ -8,7 +9,7 @@ const request = axios.create({
 
 request.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token')
+    const token = getToken()
     if (token) {
       config.headers.Authorization = token
     }
@@ -25,7 +26,7 @@ request.interceptors.response.use(
     
     const res = response.data
     if (res.code === 401) {
-      localStorage.removeItem('token')
+      clearAuth()
       window.location.href = '/login'
       return Promise.reject(new Error(res.message || '未登录'))
     }

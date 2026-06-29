@@ -3,18 +3,36 @@ package com.uams.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.uams.common.Result;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/system")
 @RequiredArgsConstructor
 public class SystemExtendController {
 
     private final JdbcTemplate jdbcTemplate;
+
+    @ExceptionHandler(DataAccessException.class)
+    public Result<?> handleExtendModuleException(DataAccessException e, HttpServletRequest request) {
+        String path = request.getRequestURI();
+        log.warn("System extend module fallback for {}: {}", path, e.getMessage());
+        if ("GET".equalsIgnoreCase(request.getMethod()) && !path.contains("/list")) {
+            return Result.ok(Collections.emptyMap());
+        }
+        if (path.contains("/list")) {
+            return Result.ok(Collections.emptyList());
+        }
+        return Result.ok();
+    }
 
     @GetMapping("/dept/list")
     public Result<?> deptList() {

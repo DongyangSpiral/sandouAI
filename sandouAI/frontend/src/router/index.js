@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { driveUrl, isDriveEntry, portalUrl } from '../config/appEntry'
 
-const routes = [
+const portalRoutes = [
   {
     path: '/login',
     name: 'Login',
@@ -35,6 +36,22 @@ const routes = [
     ]
   },
   {
+    path: '/:pathMatch(.*)*',
+    redirect: '/dashboard'
+  }
+]
+
+const driveRoutes = [
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import('../views/login/index.vue')
+  },
+  {
+    path: '/',
+    redirect: '/dfs'
+  },
+  {
     path: '/dfs',
     name: 'DfsHome',
     component: () => import('../views/dfs/index.vue')
@@ -53,12 +70,27 @@ const routes = [
     path: '/team/detail/:id',
     name: 'TeamDetail',
     component: () => import('../views/team/detail.vue')
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/dfs'
   }
 ]
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes: isDriveEntry ? driveRoutes : portalRoutes
+})
+
+router.beforeEach((to) => {
+  if (!isDriveEntry && (to.path.startsWith('/dfs') || to.path.startsWith('/team'))) {
+    window.location.href = driveUrl(to.fullPath)
+    return false
+  }
+  if (isDriveEntry && (to.path.startsWith('/dashboard') || to.path.startsWith('/system') || to.path.startsWith('/uas') || to.path.startsWith('/monitor') || to.path.startsWith('/tool'))) {
+    window.location.href = portalUrl(to.fullPath)
+    return false
+  }
 })
 
 export default router

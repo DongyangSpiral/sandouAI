@@ -1,25 +1,25 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3307/uams?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
-    username: root
-    password: hzy2005
+    url: ${MYSQL_URL:jdbc:mysql://localhost:3307/uams?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC}
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
   data:
     redis:
-      host: localhost
-      port: 6379
-      password:
-      database: 0
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
       lettuce:
         pool:
           max-active: 8
           max-idle: 8
           min-idle: 0
   rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
   servlet:
     multipart:
       max-file-size: 100MB
@@ -29,12 +29,12 @@ dfs:
   storage:
     type: minio
     minio:
-      endpoint: http://127.0.0.1:9000
-      access-key: minioadmin
-      secret-key: minioadmin
-      bucket: uams-files
+      endpoint: ${MINIO_ENDPOINT:http://127.0.0.1:9000}
+      access-key: ${MINIO_ACCESS_KEY:minioadmin}
+      secret-key: ${MINIO_SECRET_KEY:minioadmin}
+      bucket: ${MINIO_BUCKET:uams-files}
 
 ai:
   deepseek:
-    api-key: sk-05810d439bd9409ca01e64d0ac2ddf14
-    endpoint: https://api.deepseek.com/chat/completions
+    api-key: ${DEEPSEEK_API_KEY:}
+    endpoint: ${DEEPSEEK_ENDPOINT:https://api.deepseek.com/chat/completions}

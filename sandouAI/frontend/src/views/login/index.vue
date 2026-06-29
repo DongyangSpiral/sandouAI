@@ -90,6 +90,8 @@ import { ElMessage } from 'element-plus'
 import { Connection, FolderOpened, Lock, MagicStick } from '@element-plus/icons-vue'
 import { systemLogin } from '../../api/system'
 import { passwordLogin, sendSms, smsLogin, getCorps, enterpriseLogin } from '../../api/uas'
+import { isDriveEntry } from '../../config/appEntry'
+import { setAuth } from '../../utils/auth'
 
 const router = useRouter()
 const loginType = ref('admin')
@@ -129,10 +131,9 @@ async function handleAdminLogin() {
   try {
     const res = await systemLogin({ username: adminForm.username, password: adminForm.password })
     const { token, userInfo } = res.data.data
-    localStorage.setItem('token', token)
-    localStorage.setItem('userInfo', JSON.stringify(userInfo))
+    setAuth(token, userInfo)
     ElMessage.success('登录成功')
-    router.push('/system/user')
+    router.push(isDriveEntry ? '/dfs' : '/system/user')
   } catch (e) {
     ElMessage.error(e.response?.data?.message || e.message || '登录失败')
   } finally {
@@ -146,6 +147,9 @@ async function handlePasswordLogin() {
   loading.value = true
   try {
     const res = await passwordLogin({ phone: passwordForm.phone, password: passwordForm.password })
+    const { token, userInfo } = res.data.data
+    setAuth(token, userInfo)
+    router.push(isDriveEntry ? '/dfs' : '/dashboard')
     ElMessage.success('登录成功')
   } catch (e) {
     ElMessage.error(e.response?.data?.message || '登录失败')
@@ -178,6 +182,9 @@ async function handleSmsLogin() {
   loading.value = true
   try {
     const res = await smsLogin({ phone: smsForm.phone, code: smsForm.code })
+    const { token, userInfo } = res.data.data
+    setAuth(token, userInfo)
+    router.push(isDriveEntry ? '/dfs' : '/dashboard')
     ElMessage.success('登录成功')
   } catch (e) {
     ElMessage.error(e.response?.data?.message || '登录失败')
@@ -215,6 +222,9 @@ async function handleEnterpriseLogin() {
   loading.value = true
   try {
     const res = await enterpriseLogin({ corpId: enterpriseForm.corpId, password: enterpriseForm.password })
+    const { token, corpInfo } = res.data.data
+    setAuth(token, corpInfo)
+    router.push(isDriveEntry ? '/dfs' : '/dashboard')
     ElMessage.success('登录成功')
   } catch (e) {
     ElMessage.error(e.response?.data?.message || '登录失败')

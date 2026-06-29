@@ -1,163 +1,182 @@
 # Sandou Drive（UAMS）
 
-Sandou Drive 是一个前后端分离的企业文件协作平台。项目基于既有的统一认证管理系统（UAMS）扩展，提供文件管理、团队协作、分享、预览、AI 文档辅助以及系统管理能力。
+Sandou Drive 是一个前后端分离的企业文件协作平台，基于 UAMS 统一认证管理系统扩展，提供用户认证、系统管理、文件管理、团队协作、文件分享、在线预览和 AI 文档助手等能力。
 
-## 项目目标
-
-- 让个人文件、团队资料和访问权限在一个工作空间内完成管理。
-- 复用 UAMS 的登录、用户、角色和菜单体系，避免维护两套身份系统。
-- 使用对象存储保存文件，并为文件分享、团队协作和后续 AI 文档分析提供基础能力。
-
-## 核心能力
+## 功能概览
 
 | 模块 | 功能 |
 | --- | --- |
-| 工作台 | 文件空间入口、系统数据概览、常用工作区、活动与趋势图。 |
-| 文件管理 | 文件上传、下载、预览、搜索、排序、文件夹树、新建文件夹、删除和分享。 |
-| 团队协作 | 创建团队、成员邀请、成员角色、团队资料和操作权限。 |
-| 文件分享 | 为文件创建访问链接，可设置访问密码、失效时间和下载权限。 |
-| AI 助手 | 对文本类文档生成摘要并进行内容问答；需配置可用的大模型服务。 |
-| 统一认证 | 管理员、自然人、企业用户及应用管理；支持多种登录方式。 |
-| 系统控制台 | 用户、角色、菜单、部门、岗位、字典、公告、监控与开发工具。 |
+| 统一认证 | 管理员登录、自然人用户、企业用户、应用和 OAuth2 授权管理 |
+| 系统管理 | 用户、角色、菜单、部门、岗位、字典、公告、监控与代码生成 |
+| 文件管理 | 文件上传、下载、预览、搜索、排序、目录树、新建文件夹、删除和分享 |
+| 团队协作 | 团队创建、成员邀请、成员角色、团队资源和权限管理 |
+| 文件分享 | 访问链接、访问密码、过期时间、是否允许下载 |
+| AI 助手 | 文本类文档摘要和问答，需要自行配置兼容 OpenAI 格式的大模型服务 |
 
-## 技术架构
-
-```text
-浏览器（Vue 3 + Element Plus + ECharts）
-                │ /api
-Spring Boot 3 + MyBatis-Plus + Sa-Token
-       │              │               │
-    MySQL          Redis         MinIO / 本地文件存储
-```
+## 技术栈
 
 | 层级 | 技术 |
 | --- | --- |
 | 前端 | Vue 3、Vite 5、Vue Router、Pinia、Element Plus、ECharts、Axios |
-| 后端 | Java 17、Spring Boot 3.2.5、MyBatis-Plus、Sa-Token |
-| 数据 | MySQL 8、Redis |
-| 文件存储 | MinIO（推荐）或本地磁盘存储 |
-| 可选服务 | RabbitMQ（短信登录）、兼容 OpenAI 接口的大模型服务（AI 助手） |
+| 后端 | Java 17、Spring Boot 3.2.5、MyBatis-Plus、Sa-Token、Knife4j |
+| 数据与中间件 | MySQL 8、Redis、RabbitMQ、MinIO |
+| 文件存储 | 默认使用 MinIO，也支持后端配置中的本地磁盘存储 |
 
-## 目录说明
+## 目录结构
 
 ```text
 .
-├─ sandouAI/
-│  ├─ backend/                 Spring Boot 服务
-│  ├─ frontend/                Vue 前端
-│  │  └─ src/views/
-│  │     ├─ dashboard/         工作台
-│  │     ├─ dfs/               文件管理
-│  │     ├─ team/              团队协作
-│  │     ├─ system/            系统管理
-│  │     └─ uas/               统一认证
-│  ├─ sql/                     数据库初始化脚本
-│  ├─ docker-compose.yml       MinIO、Redis、RabbitMQ 容器配置
-│  ├─ start.bat                Windows 一键启动脚本
-│  └─ AGENTS.md                开发协作约束
-└─ test/                       接口与性能测试脚本
+├── README.md
+├── sandouAI/
+│   ├── backend/                 Spring Boot 后端
+│   ├── frontend/                Vue 前端
+│   ├── sql/                     数据库初始化脚本
+│   ├── docker-compose.yml       MySQL、Redis、RabbitMQ、MinIO
+│   ├── start.bat                Windows 启动脚本
+│   └── start-backend.bat        仅启动后端
+└── test/                        接口与性能测试脚本
 ```
 
-## 快速启动（Windows）
+## 从 Zip 本地运行
 
-### 1. 前置条件
-
-- JDK 17 或更高版本
-- Node.js 18 或更高版本
-- Maven 3.9 或更高版本
-- MySQL 8
-- Redis 与 MinIO（文件上传功能需要）
-
-### 2. 初始化数据库
-
-在 `sandouAI/sql/` 中依次执行基础系统、文件团队与系统扩展脚本。系统扩展脚本不可省略，否则部门、岗位、字典、公告等模块会缺少数据表。
-
-```powershell
-mysql -u root -p < sandouAI/sql/init.sql
-mysql -u root -p < sandouAI/sql/init_dfs.sql
-mysql -u root -p < sandouAI/sql/init_extend.sql
-```
-
-### 3. 配置服务
-
-检查 `sandouAI/backend/src/main/resources/application-dev.yml` 中的数据库连接信息；不要将真实密码提交到版本库。
-
-如使用 Docker 启动基础设施：
+1. 解压项目压缩包。
+2. 进入解压后的项目根目录，再进入 `sandouAI` 子目录。
+3. 安装或准备下面的软件：
+   - JDK 17
+   - Maven 3.9+
+   - Node.js 18+
+   - Docker Desktop（推荐，用于启动 MySQL、Redis、RabbitMQ、MinIO）
+4. 启动基础服务：
 
 ```powershell
 cd sandouAI
-docker-compose up -d
+docker compose up -d
 ```
 
-### 4. 启动应用
+首次启动 MySQL 容器时，会自动执行 `sql/` 目录下的初始化脚本，创建 `uams` 数据库和基础表数据。
 
-推荐直接在 `sandouAI/` 下双击或运行：
+5. 启动应用：
 
 ```powershell
 .\start.bat
 ```
 
-该脚本会检查 Java、Maven、Node.js，并启动 MySQL、后端和前端。开发时也可分别运行：
+启动后访问：
+
+| 服务 | 地址 |
+| --- | --- |
+| 管理门户 | http://localhost:5173 |
+| 文件空间 | http://localhost:5174 |
+| 后端 API | http://localhost:8080 |
+| API 文档 | http://localhost:8080/doc.html |
+| MinIO 控制台 | http://localhost:9001 |
+| RabbitMQ 控制台 | http://localhost:15672 |
+
+默认管理员账号：`admin`
+
+默认管理员密码：`123456`
+
+## 手动启动
+
+如果不使用 `start.bat`，可以分别启动后端和前端。
+
+后端：
 
 ```powershell
 cd sandouAI/backend
 mvn spring-boot:run
-
-cd ../frontend
-npm install
-npm run dev
 ```
 
-访问地址：
+前端管理门户：
 
-| 服务 | 地址 |
-| --- | --- |
-| 前端 | http://localhost:5173 |
-| 后端 API | http://localhost:8080 |
-| API 文档 | http://localhost:8080/doc.html |
-| MinIO 控制台 | http://localhost:9001 |
+```powershell
+cd sandouAI/frontend
+npm install
+npm run dev:portal
+```
 
-默认管理员账号为 `admin`，密码为 `123456`。
+前端文件空间：
 
-## 文件与团队工作流
+```powershell
+cd sandouAI/frontend
+npm run dev:drive
+```
 
-1. 从工作台进入“我的文件”，可上传资料或创建文件夹。
-2. 在文件行的更多菜单中预览、下载、分享或发起 AI 分析。
-3. 进入“团队空间”创建团队、邀请成员并管理成员角色。
-4. 分享文件时可选择密码、有效期和是否允许下载。
-5. 文件页与团队页均提供“返回概览”和另一工作区的导航入口。
+## 配置说明
 
-## 存储与安全说明
+后端开发配置位于 `sandouAI/backend/src/main/resources/application-dev.yml`。默认值适配 `docker compose up -d` 启动的本地环境，也可以通过环境变量覆盖。
 
-- 文件接口及目录接口受登录状态保护，客户端通过 `Authorization` 请求头携带 Sa-Token。
-- 默认文件大小限制为 500 MB；配置位于 `application.yml` 的 `dfs.storage.local.max-size`。
-- 推荐使用 MinIO 的 `uams-files` 存储桶；本地存储模式的目录为 `./uploads`。
-- 文件删除采用逻辑删除，数据恢复需由管理员处理。
-- AI 功能依赖有效的大模型 API 配置；未配置或额度不足时，文件管理与团队功能不受影响。
+| 环境变量 | 默认值 | 说明 |
+| --- | --- | --- |
+| `MYSQL_URL` | `jdbc:mysql://localhost:3307/uams?...` | MySQL 连接地址 |
+| `MYSQL_USERNAME` | `root` | MySQL 用户名 |
+| `MYSQL_PASSWORD` | `root` | MySQL 密码 |
+| `REDIS_HOST` | `localhost` | Redis 地址 |
+| `REDIS_PORT` | `6379` | Redis 端口 |
+| `RABBITMQ_HOST` | `localhost` | RabbitMQ 地址 |
+| `RABBITMQ_USERNAME` | `guest` | RabbitMQ 用户名 |
+| `RABBITMQ_PASSWORD` | `guest` | RabbitMQ 密码 |
+| `MINIO_ENDPOINT` | `http://127.0.0.1:9000` | MinIO API 地址 |
+| `MINIO_ACCESS_KEY` | `minioadmin` | MinIO Access Key |
+| `MINIO_SECRET_KEY` | `minioadmin` | MinIO Secret Key |
+| `MINIO_BUCKET` | `uams-files` | 文件桶名称 |
+| `DEEPSEEK_API_KEY` | 空 | AI 助手的大模型 API Key |
+| `DEEPSEEK_ENDPOINT` | `https://api.deepseek.com/chat/completions` | 兼容 OpenAI 格式的对话接口 |
 
-## 前端设计规范
+Windows PowerShell 示例：
 
-当前界面以文件管理页为体验基准：
+```powershell
+$env:MYSQL_PASSWORD="root"
+$env:DEEPSEEK_API_KEY="你的 API Key"
+cd sandouAI/backend
+mvn spring-boot:run
+```
 
-- 深色侧栏配合明确的工作区入口；文件与团队为一级导航。
-- 文件、团队页面使用一致的顶部导航，提供返回概览和跨工作区跳转。
-- 以留白、低饱和背景、渐变功能区和轻量卡片表达信息层级。
-- 管理控制台继续复用 Element Plus，统一接入全局主题变量。
+不要把真实数据库密码、API Key 或生产配置提交到 Git。
 
-## 开发与验证
+## 前端入口配置
+
+前端提供两个入口：
+
+| 命令 | 入口 | 地址 |
+| --- | --- | --- |
+| `npm run dev:portal` | 管理门户 | http://localhost:5173 |
+| `npm run dev:drive` | 文件空间 | http://localhost:5174 |
+| `npm run build:portal` | 构建管理门户 | `dist/` |
+| `npm run build:drive` | 构建文件空间 | `dist-drive/` |
+
+入口配置文件：
+
+- `sandouAI/frontend/.env.portal`
+- `sandouAI/frontend/.env.drive`
+
+默认情况下，管理门户和文件空间会互相跳转到对应端口。
+
+## 打包与验证
 
 前端构建：
 
 ```powershell
 cd sandouAI/frontend
-npm run build
+npm run build:portal
+npm run build:drive
 ```
 
-后端编译：
+后端打包：
 
 ```powershell
 cd sandouAI/backend
-mvn clean compile
+mvn -DskipTests package
 ```
 
-提交代码前，优先验证登录、文件列表、文件夹创建、上传、团队创建和分享链路。详细的代码协作规范见 [sandouAI/AGENTS.md](sandouAI/AGENTS.md)。
+源码交付 Zip 不包含 `node_modules/`、`target/`、`dist/`、`dist-drive/`、日志、临时文件、数据库运行数据和 `.git/`。拿到 Zip 后按“从 Zip 本地运行”重新安装依赖并启动即可。
+
+## 常见问题
+
+| 问题 | 处理方式 |
+| --- | --- |
+| 后端提示 Java 版本不兼容 | 确认 `java -version` 是 JDK 17 或更高版本 |
+| 前端依赖安装失败 | 确认 Node.js 18+ 可用，并重新执行 `npm install` |
+| 数据库连接失败 | 确认 `docker compose ps` 中 MySQL 正常运行，端口为 `3307` |
+| 文件上传失败 | 确认 MinIO 正常运行，并存在 `uams-files` bucket |
+| AI 助手不可用 | 配置 `DEEPSEEK_API_KEY` 后重启后端 |
