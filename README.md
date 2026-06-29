@@ -46,11 +46,25 @@ Sandou Drive 是一个前后端分离的企业文件协作平台，基于 UAMS �
    - Maven 3.9+
    - Node.js 18+
    - Docker Desktop（推荐，用于启动 MySQL、Redis、RabbitMQ、MinIO）
-4. 启动基础服务：
+4. 启动基础服务。如果 Docker 安装在 Windows 侧，直接在 PowerShell 中运行：
 
 ```powershell
 cd sandouAI
 docker compose up -d
+```
+
+如果 Docker 安装在 WSL 的 Ubuntu 中，先进入项目在 WSL 中的挂载目录：
+
+```bash
+cd /mnt/e/Code/sandouAI/sandouAI
+docker compose up -d
+```
+
+如果本机已经有 MySQL、Redis、RabbitMQ，只需要启动 MinIO，可以运行：
+
+```bash
+cd /mnt/e/Code/sandouAI/sandouAI
+docker compose up -d minio
 ```
 
 首次启动 MySQL 容器时，会自动执行 `sql/` 目录下的初始化脚本，创建 `uams` 数据库和基础表数据。
